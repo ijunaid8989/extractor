@@ -1,0 +1,31 @@
+<h1>Listing all extractors</h1>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Camera Id</th>
+      <th>From Date</th>
+      <th>To Date</th>
+      <th>Interval</th>
+      <th>Status</th>
+      <th>Notes</th>
+      <th>Created At</th>
+      <th>Updated At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for extractor <- @snapshot_extractors do %>
+      <tr>
+        <th scope="row"><%= extractor.id %></th>
+        <td><%= extractor.camera_id %></td>
+        <td><%= extractor.from_date %></td>
+        <td><%= extractor.to_date %></td>
+        <td><%= extractor.interval %></td>
+        <td><%= extractor.status %></td>
+        <td><%= extractor.notes %></td>
+        <td><%= extractor.created_at %></td>
+        <td><%= extractor.update_at %></td>
+      </tr>
+    <%= end %>
+  </tbody>
+</table>
