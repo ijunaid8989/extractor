@@ -16,8 +16,7 @@ defmodule Extractor.Router do
   scope "/", Extractor do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
-    get "/extractors", SnapshotExtractorController, :index
+    get "/", SnapshotExtractorController, :index
   end
 
   # Other scopes may use custom stacks.
