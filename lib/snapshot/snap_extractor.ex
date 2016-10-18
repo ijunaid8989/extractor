@@ -20,14 +20,20 @@ defmodule Extractor.SnapExtractor do
       |> Calendar.DateTime.from_erl!(timezone)
 
     total_days = find_difference(end_date, start_date)
-    # all_valid_dates_in_range(start_date, end_date) |> Enum.each(fn(date) ->
-    #   check_day = date |> Calendar.Date.day_of_week_name
-    #   IO.inspect iterate(schedule[check_day], date, timezone)
-    #   end)
+
+    Enum.each(1..total_days, fn(day) ->
+      unless start_date <= end_date do
+        check_day = start_date |> Calendar.Date.day_of_week_name
+        IO.inspect iterate(schedule[check_day], start_date, timezone)
+        start_date = start_date |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> add!(86400)
+        end
+      end)
   end
 
   defp find_difference(end_date, start_date) do
-    
+    case Calendar.DateTime.diff(end_date, start_date) do
+      {:ok, seconds, _, :after} -> seconds
+      _ -> 1
   end
 
   defp iterate([head|tail], check_time, timezone) do
