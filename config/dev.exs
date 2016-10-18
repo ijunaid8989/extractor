@@ -36,6 +36,9 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :extractor, Extractor.Repo,
   adapter: Ecto.Adapters.Postgres,
+  extensions: [
+    {Extractor.Types.JSON.Extension, library: Poison}
+  ],
   username: "postgres",
   password: "postgres",
   database: System.get_env["db"] || "evercam_dev",
