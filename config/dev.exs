@@ -38,6 +38,5 @@ config :extractor, Extractor.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "extractor_dev",
-  hostname: "localhost",
+  database: System.get_env["db"] || "evercam_dev",
   pool_size: 10
