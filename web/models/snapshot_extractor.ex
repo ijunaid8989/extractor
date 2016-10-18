@@ -12,12 +12,19 @@ defmodule SnapshotExtractor do
     field :schedule, Extractor.Types.JSON
     field :status, :integer
     field :notes, :string
-    field :created_at, Ecto.DateTime, default: Ecto.DateTime.utc
-    field :update_at, Ecto.DateTime, default: Ecto.DateTime.utc
+    timestamps(inserted_at: :created_at, type: Ecto.DateTime, default: Ecto.DateTime.utc)
   end
 
   def all_extractors do
     SnapshotExtractor
     |> Repo.all
   end
+
+  def fetch_schedule do
+    SnapshotExtractor
+    |> order_by(desc: :created_at)
+    |> limit(1)
+    |> Repo.one
+  end
+
 end
