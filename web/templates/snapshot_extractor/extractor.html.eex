@@ -24,7 +24,7 @@
         <td><%= extractor.status %></td>
         <td><%= extractor.notes %></td>
         <td><%= extractor.created_at %></td>
-        <td><%= extractor.update_at %></td>
+        <td><%= extractor.updated_at %></td>
       </tr>
     <%= end %>
   </tbody>
