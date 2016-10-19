@@ -1,9 +1,15 @@
 defmodule Extractor.SnapExtractor do
   require IEx
+
+  @evercam_api_url System.get_env["EVERCAM_URL"]
+  @user_key System.get_env["USER_KEY"]
+  @user_id System.get_env["USER_ID"]
+
   def fetch_dates_unix do
     extractor = SnapshotExtractor.fetch_details
     schedule = extractor.schedule
     interval = extractor.interval
+    camera_exid = extractor.camera_exid
 
     timezone =
       case extractor.timezone do
@@ -21,14 +27,28 @@ defmodule Extractor.SnapExtractor do
       |> Ecto.DateTime.to_erl
       |> Calendar.DateTime.from_erl!(timezone)
 
-    total_days = find_difference(end_date, start_date) / 86400
+    total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
-    1..total_days |> Enum.reduce(start_date, fn i, acc ->
+    1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       day_of_week = acc |> Calendar.Date.day_of_week_name
-      IO.inspect iterate(schedule[day_of_week], start_date, timezone)
+      iterate(schedule[day_of_week], start_date, timezone) |> download(camera_exid)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
   end
+
+  def download([], _camera_exid), do: IO.inspect "I am empty!"
+  def download([starting, ending], camera_exid) do
+    starting..ending |> Enum.each(fn(day) ->
+      url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{day}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
+      response = HTTPoison.get(url, [], []) |> elem(1)
+      upload(response.status_code, response.body)
+    end)
+  end
+
+  def upload(200, response) do
+    IO.inspect response
+  end
+  def upload(_, response), do: IO.inspect "Not an Image!"
 
   defp find_difference(end_date, start_date) do
     case Calendar.DateTime.diff(end_date, start_date) do
@@ -64,4 +84,8 @@ defmodule Extractor.SnapExtractor do
       _ -> raise "Timezone conversion error"
     end
   end
+
+  defp round_2(0), do: 2
+  defp round_2(n), do: n
+    
 end
