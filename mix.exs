@@ -40,7 +40,7 @@ defmodule Extractor.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:dotenv, "~> 2.1.0"},
-      {:calendar, "~> 0.16.0"}
+      {:calendar, "~> 0.14.2"}
    ]
   end
 
