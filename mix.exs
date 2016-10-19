@@ -19,7 +19,7 @@ defmodule Extractor.Mixfile do
   def application do
     [mod: {Extractor, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :tzdata]]
+                    :phoenix_ecto, :postgrex, :tzdata, :httpoison, :dotenv]]
   end
 
   # Specifies which paths to compile per environment.
@@ -40,7 +40,8 @@ defmodule Extractor.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:dotenv, "~> 2.1.0"},
-      {:calendar, "~> 0.14.2"}
+      {:calendar, "~> 0.14.2"},
+      {:httpoison, "~> 0.9.0"}
    ]
   end
 
