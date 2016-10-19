@@ -1,7 +1,9 @@
 defmodule Extractor.SnapExtractor do
+  require IEx
   def fetch_dates_unix do
     extractor = SnapshotExtractor.fetch_details
     schedule = extractor.schedule
+    interval = extractor.interval
 
     timezone =
       case extractor.timezone do
@@ -19,15 +21,13 @@ defmodule Extractor.SnapExtractor do
       |> Ecto.DateTime.to_erl
       |> Calendar.DateTime.from_erl!(timezone)
 
-    total_days = find_difference(end_date, start_date)
+    total_days = find_difference(end_date, start_date) / 86400
 
-    Enum.each(1..total_days, fn(day) ->
-        unless start_date <= end_date do
-          check_day = start_date |> Calendar.Date.day_of_week_name
-          IO.inspect iterate(schedule[check_day], start_date, timezone)
-          start_date = start_date |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
-        end
-      end)
+    1..total_days |> Enum.reduce(start_date, fn i, acc ->
+      day_of_week = acc |> Calendar.Date.day_of_week_name
+      IO.inspect iterate(schedule[day_of_week], start_date, timezone)
+      acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+    end)
   end
 
   defp find_difference(end_date, start_date) do
@@ -37,24 +37,17 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
-  defp iterate([head|tail], check_time, timezone) do
-    head_pattern = ~r/^\d{1,2}:\d{1,2}-\d{1,2}:\d{1,2}$/
-    case Regex.match? head_pattern, head do
-      true ->
-        [from, to] = String.split head, "-"
-        [from_hour, from_minute] = String.split from, ":"
-        [to_hour, to_minute] = String.split to, ":"
+  def iterate([], _check_time, _timezone) do
+    []
+  end
+  def iterate([head|_tail], check_time, timezone) do
+    [from, to] = String.split head, "-"
+    [from_hour, from_minute] = String.split from, ":"
+    [to_hour, to_minute] = String.split to, ":"
 
-        check_time_unix_timestamp = check_time |> Calendar.DateTime.Format.unix
-        from_unix_timestamp = unix_timestamp(from_hour, from_minute, check_time, timezone)
-        to_unix_timestamp = unix_timestamp(to_hour, to_minute, check_time, timezone)
-        %{
-          from_unix_timestamp: from_unix_timestamp,
-          to_unix_timestamp: to_unix_timestamp
-        }
-      _ ->
-        {:error, "Scheduler got an invalid time format: #{inspect(head)}. Expecting Time in the format HH:MM-HH:MM"}
-    end
+    from_unix_timestamp = unix_timestamp(from_hour, from_minute, check_time, timezone)
+    to_unix_timestamp = unix_timestamp(to_hour, to_minute, check_time, timezone)
+    [from_unix_timestamp, to_unix_timestamp]
   end
 
   defp unix_timestamp(hours, minutes, date, nil) do
