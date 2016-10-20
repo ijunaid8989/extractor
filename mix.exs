@@ -42,7 +42,8 @@ defmodule Extractor.Mixfile do
       {:dotenv, "~> 2.1.0"},
       {:calendar, "~> 0.14.2"},
       {:httpoison, "~> 0.9.0"},
-      {:jazz, "~> 0.2.1"}
+      {:jazz, "~> 0.2.1"},
+      {:mailgun, github: "evercam/mailgun"}
    ]
   end
 
