@@ -14,10 +14,16 @@ use Mix.Config
 config :extractor, Extractor.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: "example.com", port: 80],
-  cache_static_manifest: "priv/static/manifest.json"
+  cache_static_manifest: "priv/static/manifest.json",
+  email: "evercam.io <support@evercam.io>"
 
 # Do not print debug messages in production
 config :logger, level: :info
+
+config :extractor, :mailgun,
+  domain: System.get_env("MAILGUN_DOMAIN"),
+  key: System.get_env("MAILGUN_KEY"),
+  mode: :prod
 
 # ## SSL Support
 #
