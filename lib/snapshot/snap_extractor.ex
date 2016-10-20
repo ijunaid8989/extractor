@@ -8,7 +8,7 @@ defmodule Extractor.SnapExtractor do
   def fetch_dates_unix do
     extractor = SnapshotExtractor.fetch_details
     schedule = extractor.schedule
-    interval = extractor.interval
+    interval = 20
     camera_exid = extractor.camera_exid
 
     timezone =
@@ -31,31 +31,39 @@ defmodule Extractor.SnapExtractor do
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       day_of_week = acc |> Calendar.Date.day_of_week_name
-      iterate(schedule[day_of_week], start_date, timezone) |> download(camera_exid)
+      iterate(schedule[day_of_week], start_date, timezone) |> download(camera_exid, interval)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
   end
 
-  def download([], _camera_exid), do: IO.inspect "I am empty!"
-  def download([starting, ending], camera_exid) do
-    starting..ending |> Enum.each(fn(day) ->
-      url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{day}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
-      response = HTTPoison.get(url, [], []) |> elem(1)
-      upload(response.status_code, response.body)
-    end)
+  def download([], _camera_exid, _interval), do: IO.inspect "I am empty!"
+  def download([starting, ending], camera_exid, interval) do
+    do_loop(starting, ending, interval, camera_exid)
+  end
+
+  defp do_loop(starting, ending, interval, camera_exid) when starting >= ending, do: IO.inspect "We are finished!"
+  defp do_loop(starting, ending, interval, camera_exid) do
+    IO.inspect starting
+    url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
+    response = HTTPoison.get(url, [], []) |> elem(1)
+    upload(response.status_code, response.body)
+    do_loop(starting + interval, ending, interval, camera_exid)
   end
 
   def upload(200, response) do
     image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
     data = decode_image(image["data"])
-    client = %Dropbox.Client{access_token: "_3JjjJxT__AAAAAAAAAACcK_pWvCGVtRJ_YHnHPIMvVGJt4isrIOG7yTobByJO2S"}
-    if Dropbox.mkdir! client, "secrets" do
-      IO.inspect "writing"
-      File.write("/cameras/image.jpg", data, [:binary])
-      Dropbox.upload_file! client, "camera/image.jpg", "secrets"
-    end
+    IO.inspect data
+    d = File.write("image.jpg", data, [:binary])
+    IO.inspect d
+    # client = %Dropbox.Client{access_token: "_3JjjJxT__AAAAAAAAAACcK_pWvCGVtRJ_YHnHPIMvVGJt4isrIOG7yTobByJO2S"}
+    # if Dropbox.mkdir! client, "secrets" do
+    #   IO.inspect "writing"
+    #   File.write("/cameras/image.jpg", data, [:binary])
+    #   Dropbox.upload_file! client, "camera/image.jpg", "secrets"
+    # end
   end
-  def upload(_, response), do: IO.inspect "Not an Image!"
+  def upload(_, _response), do: IO.inspect "Not an Image!"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
