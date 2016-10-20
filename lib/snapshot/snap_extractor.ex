@@ -41,11 +41,9 @@ defmodule Extractor.SnapExtractor do
     end)
   end
 
-  defp get_head_tail([]) do
-    0..1
-  end
+  defp get_head_tail([]), do: []
   defp get_head_tail([head|tail]) do
-    [[head], tail]
+    [[head]|get_head_tail(tail)]
   end
 
   def download([], _camera_exid, _interval), do: IO.inspect "I am empty!"
@@ -85,11 +83,8 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
-  def iterate(0, _check_time, _timezone), do: []
-  def iterate(1, _check_time, _timezone), do: []
-  def iterate([], _check_time, _timezone) do
-    []
-  end
+
+  def iterate([], _check_time, _timezone), do: []
   def iterate([head], check_time, timezone) do
     [from, to] = String.split head, "-"
     [from_hour, from_minute] = String.split from, ":"
