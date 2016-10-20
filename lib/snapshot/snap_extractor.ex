@@ -5,7 +5,7 @@ defmodule Extractor.SnapExtractor do
   @user_key System.get_env["USER_KEY"]
   @user_id System.get_env["USER_ID"]
 
-  def fetch_dates_unix do
+  def extract do
     extractor = SnapshotExtractor.fetch_details
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
@@ -32,9 +32,7 @@ defmodule Extractor.SnapExtractor do
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
-      IO.inspect rec_head
       rec_head |> Enum.each(fn(x) ->
-        IO.inspect x
         iterate(x, start_date, timezone) |> download(camera_exid, interval)
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
