@@ -47,16 +47,19 @@ defmodule Extractor.SnapExtractor do
 
   def upload(200, response) do
     image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
-    # {:ok, data} = Base.decode64(image["data"])
-    # File.write("/cameras/image.jpg", data, [:binary])
-    # client = %Dropbox.Client{access_token: "_3JjjJxT__AAAAAAAAAACcK_pWvCGVtRJ_YHnHPIMvVGJt4isrIOG7yTobByJO2S"}
-    # if Dropbox.mkdir! client, "secrets" do
-    #   IO.inspect "writing"
-    #   File.write!("camera/image.jpg", image["data"])
-    #   Dropbox.upload_file! client, "camera/image.jpg", "secrets"
-    # end
+    data = decode_image(image["data"])
+    client = %Dropbox.Client{access_token: "_3JjjJxT__AAAAAAAAAACcK_pWvCGVtRJ_YHnHPIMvVGJt4isrIOG7yTobByJO2S"}
+    if Dropbox.mkdir! client, "secrets" do
+      IO.inspect "writing"
+      File.write("/cameras/image.jpg", data, [:binary])
+      Dropbox.upload_file! client, "camera/image.jpg", "secrets"
+    end
   end
   def upload(_, response), do: IO.inspect "Not an Image!"
+
+  defp decode_image("data:image/jpeg;base64," <> encoded_image) do
+    Base.decode64!(encoded_image)
+  end
 
   defp find_difference(end_date, start_date) do
     case Calendar.DateTime.diff(end_date, start_date) do
