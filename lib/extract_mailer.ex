@@ -9,7 +9,7 @@ defmodule Extractor.ExtractMailer do
       to: "abc@bcd.com",
       subject: "SnapShot Extraction Started",
       from: @from,
-      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.html", user: user, code: code, year: @year),
-      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt", user: user, code: code)
+      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.html", year: @year),
+      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt")
   end
 end
