@@ -4,6 +4,7 @@ defmodule Extractor.SnapExtractor do
   @evercam_api_url System.get_env["EVERCAM_URL"]
   @user_key System.get_env["USER_KEY"]
   @user_id System.get_env["USER_ID"]
+  @client %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}
 
   def extract do
     extractor = SnapshotExtractor.fetch_details
@@ -29,6 +30,14 @@ defmodule Extractor.SnapExtractor do
 
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
+    case SnapshotExtractor.update_extractor_status(%{status: 1}) do
+      {:ok, _} ->
+        Extractor.ExtractMailer.extractor_started
+        Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "secrets/#{camera_exid}"
+      _ ->
+        IO.inspect "Status update failed!"
+    end
+
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
@@ -37,6 +46,11 @@ defmodule Extractor.SnapExtractor do
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
+
+    case SnapshotExtractor.update_extractor_status(%{status: 2}) do
+      {:ok, _} -> Extractor.ExtractMailer.extractor_completed
+      _ -> IO.inspect "Status update failed!"
+    end
   end
 
   defp get_head_tail([]), do: []
@@ -53,22 +67,19 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, interval, camera_exid) do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     response = HTTPoison.get(url, [], []) |> elem(1)
-    upload(response.status_code, response.body, starting)
+    upload(response.status_code, response.body, starting, camera_exid)
     do_loop(starting + interval, ending, interval, camera_exid)
   end
 
-  def upload(200, response, status_code) do
+  def upload(200, response, starting, camera_exid) do
     image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
     data = decode_image(image["data"])
     IO.inspect data
-    d = File.write("image.jpg", data, [:binary])
-    IO.inspect d
-    # client = %Dropbox.Client{access_token: "_3JjjJxT__AAAAAAAAAACcK_pWvCGVtRJ_YHnHPIMvVGJt4isrIOG7yTobByJO2S"}
-    # IO.inspect "writing"
-    # name = Enum.concat(?a..?z, ?0..?9) |> Enum.take_random(4)
-    # Dropbox.upload_file! client, "image.jpg", "secrets/#{name}.jpg"
+    File.write("image.jpg", data, [:binary])
+    IO.inspect "writing"
+    Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "secrets/#{camera_exid}/#{starting}.jpg"
   end
-  def upload(_, _response, _starting), do: IO.inspect "Not an Image!"
+  def upload(_, _response, _starting, _camera_exid), do: IO.inspect "Not an Image!"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)

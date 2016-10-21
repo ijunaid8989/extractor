@@ -6,10 +6,19 @@ defmodule Extractor.ExtractMailer do
 
   def extractor_started do
     Mailgun.Client.send_email @config,
-      to: "abc@bcd.com",
+      to: "junaid@evercam.io",
       subject: "SnapShot Extraction Started",
       from: @from,
       html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.html", year: @year),
-      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt")
+      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt", year: @year)
+  end
+
+  def extractor_completed do
+    Mailgun.Client.send_email @config,
+      to: "junaid@evercam.io",
+      subject: "SnapShot Extraction Completed",
+      from: @from,
+      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", year: @year),
+      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", year: @year)
   end
 end
