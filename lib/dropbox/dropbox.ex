@@ -211,7 +211,7 @@ defmodule Dropbox do
   def upload_file!(client, local_path, remote_path, overwrite \\ true, parent_rev \\ nil) do
     case upload_file client, local_path, remote_path do
       {:ok, meta} -> meta
-      {:error, reason} -> raise_error reason
+      {:error, reason} -> {:skipping, reason}
     end
   end
 
