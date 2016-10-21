@@ -22,9 +22,15 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :extractor,
+config :extractor, :mailgun,
   mailgun_domain: System.get_env("MAILGUN_DOMAIN"),
   mailgun_key: System.get_env("MAILGUN_KEY")
+
+config :extractor, :mailgun,
+  domain: "sandbox",
+  key: "sandbox",
+  mode: :test,
+  test_file_path: "priv_dir/mailgun_test.json"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
