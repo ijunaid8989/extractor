@@ -1,20 +1,23 @@
-# Extractor
+SnapShot Extractor!
+===================
 
-To start your Phoenix app:
+This is a tool for [Evercam](http://evercam.io/) specifically build to extract images for a camera while using an existing endpoint in [Evercam-media  (an API for talking to cameras)](https://github.com/evercam/evercam-media) .
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  * Install Node.js dependencies with `npm install`
-  * Start Phoenix endpoint with `mix phoenix.server`
+**Core Dependencies**
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+ 1. Dropbox (For uploading image)
+ 2. Httpoison (Http requests)
+ 3. Mailgun (Email sending)
+ 4. Quantum (Cron Job)
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+**How it works**
 
-## Learn more
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+At every midnight it takes the most recent created `SnapshotExtractor` whom status is `0` at the moment.
+
+ 1. It will update its status to `1` and send en email to the owner that image extraction has been started.
+ 2. It will fetch total days and recording dates from `SnapshotExtractor`'s `schedule`.
+   e.g `{"Monday":["12:30-13:0"],"Tuesday":[],"Wednesday":["4:0-4:30"],"Thursday":[],"Friday":["8:30-9:0"],"Saturday":[],"Sunday":["19:30-20:0"]}`
+ 3. From a specific starting to ending date, for each day and according to schedule, It will fetch all images and save them to DropBox.
+ 4. No crash on any timeout/Any other reason from `evercam-media` or `dropbox`.
+ 5. After complition it will send an email again.
