@@ -24,7 +24,8 @@ config :extractor, Extractor.Endpoint,
       ~r{web/views/.*(ex)$},
       ~r{web/templates/.*(eex)$}
     ]
-  ]
+  ],
+  email: "evercam.io <env.dev@evercam.io>"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
