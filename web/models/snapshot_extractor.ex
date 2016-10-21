@@ -37,6 +37,7 @@ defmodule SnapshotExtractor do
     SnapshotExtractor
     |> order_by(desc: :created_at)
     |> limit(1)
+    |> where(status: 0)
     |> Repo.one
     |> changeset(params)
     |> Repo.update
