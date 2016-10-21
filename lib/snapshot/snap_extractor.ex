@@ -1,10 +1,4 @@
 defmodule Extractor.SnapExtractor do
-  require IEx
-
-  @evercam_api_url System.get_env["EVERCAM_URL"]
-  @user_key System.get_env["USER_KEY"]
-  @user_id System.get_env["USER_ID"]
-  @client %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}
 
   def extract do
     extractor = SnapshotExtractor.fetch_details
@@ -31,7 +25,7 @@ defmodule Extractor.SnapExtractor do
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
     case SnapshotExtractor.update_extractor_status(%{status: 1}) do
-      {:ok, _} ->
+      {:ok, extractor} ->
         Extractor.ExtractMailer.extractor_started
         Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "secrets/#{camera_exid}"
       _ ->
@@ -42,7 +36,7 @@ defmodule Extractor.SnapExtractor do
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
       rec_head |> Enum.each(fn(x) ->
-        iterate(x, start_date, timezone) |> download(camera_exid, interval)
+        iterate(x, acc, timezone) |> download(camera_exid, interval)
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
@@ -66,9 +60,15 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, interval, _camera_exid) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid) do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
-    response = HTTPoison.get(url, [], []) |> elem(1)
-    upload(response.status_code, response.body, starting, camera_exid)
-    do_loop(starting + interval, ending, interval, camera_exid)
+    case HTTPoison.get!(url, [], []) do
+      %HTTPoison.Error{reason: reason} ->
+        IO.inspect "Media: #{reason}!"
+        :timer.sleep(:timer.seconds(3))
+        do_loop(starting + interval, ending, interval, camera_exid)
+      response ->
+        upload(response.status_code, response.body, starting, camera_exid)
+        do_loop(starting + interval, ending, interval, camera_exid)
+    end
   end
 
   def upload(200, response, starting, camera_exid) do
@@ -77,7 +77,13 @@ defmodule Extractor.SnapExtractor do
     IO.inspect data
     File.write("image.jpg", data, [:binary])
     IO.inspect "writing"
-    Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "secrets/#{camera_exid}/#{starting}.jpg"
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "secrets/#{camera_exid}/#{starting}.jpg" do
+      {:skipping, reason} ->
+        IO.inspect reason
+        :timer.sleep(:timer.seconds(3))
+      _ ->
+        IO.inspect "written"
+    end
   end
   def upload(_, _response, _starting, _camera_exid), do: IO.inspect "Not an Image!"
 
@@ -91,7 +97,6 @@ defmodule Extractor.SnapExtractor do
       _ -> 1
     end
   end
-
 
   def iterate([], _check_time, _timezone), do: []
   def iterate([head], check_time, timezone) do
@@ -120,7 +125,7 @@ defmodule Extractor.SnapExtractor do
   end
 
   defp round_2(0), do: 2
-  defp round_2(n), do: n
+  defp round_2(n), do: n + 1
 
   defp intervaling(0), do: 1
   defp intervaling(n), do: n
