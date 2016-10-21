@@ -25,6 +25,15 @@ config :extractor, :mailgun,
   key: System.get_env("MAILGUN_KEY"),
   mode: :prod
 
+config :quantum,
+  cron: [
+    snapshot_extraction: [
+      task: {"Extractor.SnapExtractor", "extract"},
+      schedule: "@daily",
+      overlap: false
+    ]
+  ]
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
