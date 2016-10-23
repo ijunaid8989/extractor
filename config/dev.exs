@@ -34,6 +34,11 @@ config :logger, :console, format: "[$level] $message\n"
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
 
+config :extractor, :mailgun,
+  domain: "https://api.mailgun.net/v3/sandbox119410a316d84b37b641ffdfd590ea15.mailgun.org",
+  key: "key-9f635a8602c7430b0807250cf75d5397",
+  mode: :dev
+
 # Configure your database
 config :extractor, Extractor.Repo,
   adapter: Ecto.Adapters.Postgres,

@@ -1,7 +1,7 @@
 defmodule Extractor.ExtractMailer do
 
   @config Application.get_env(:extractor, :mailgun)
-  @from Application.get_env(:extractor, EvercamMedia.Endpoint)[:email]
+  @from "support@evercam.io"
   @year Calendar.DateTime.now_utc |> Calendar.Strftime.strftime!("%Y")
 
   def extractor_started do

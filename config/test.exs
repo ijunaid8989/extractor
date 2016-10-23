@@ -9,6 +9,12 @@ config :extractor, Extractor.Endpoint,
 # Print only warnings and errors during test
 config :logger, level: :warn
 
+config :extractor, :mailgun,
+  domain: "sandbox",
+  key: "sandbox",
+  mode: :test,
+  test_file_path: "priv_dir/mailgun_test.json"
+
 # Configure your database
 config :extractor, Extractor.Repo,
   adapter: Ecto.Adapters.Postgres,
