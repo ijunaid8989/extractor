@@ -29,15 +29,13 @@ defmodule SnapshotExtractor do
     |> limit(1)
     |> where(status: 0)
     |> join(:inner_lateral, [se], cam in fragment("SELECT * FROM cameras as cam WHERE cam.id = ?", se.camera_id))
-    |> select([se, cam], %{ from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone})
+    |> select([se, cam], %{ id: se.id, from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone})
     |> Repo.one
   end
 
-  def update_extractor_status(params) do
+  def update_extractor_status(extractor_id, params) do
     SnapshotExtractor
-    |> order_by(desc: :created_at)
-    |> limit(1)
-    |> where(status: 0)
+    |> where(id: ^extractor_id)
     |> Repo.one
     |> changeset(params)
     |> Repo.update
