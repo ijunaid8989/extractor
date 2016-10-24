@@ -24,7 +24,7 @@ defmodule Extractor.SnapExtractor do
 
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
-    case SnapshotExtractor.update_extractor_status(%{status: 1}) do
+    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
         Extractor.ExtractMailer.extractor_started
         Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "secrets/#{camera_exid}"
@@ -41,7 +41,7 @@ defmodule Extractor.SnapExtractor do
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
 
-    case SnapshotExtractor.update_extractor_status(%{status: 2}) do
+    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2}) do
       {:ok, _} -> Extractor.ExtractMailer.extractor_completed
       _ -> IO.inspect "Status update failed!"
     end
@@ -60,14 +60,14 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, _interval, _camera_exid) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid) do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
-    case HTTPoison.get!(url, [], []) do
-      %HTTPoison.Error{reason: reason} ->
+    case HTTPoison.get(url, [], []) do
+      {:ok, response} ->
+        upload(response.status_code, response.body, starting, camera_exid)
+        do_loop(starting + interval, ending, interval, camera_exid)
+      {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Media: #{reason}!"
         :timer.sleep(:timer.seconds(3))
         do_loop(starting, ending, interval, camera_exid)
-      response ->
-        upload(response.status_code, response.body, starting, camera_exid)
-        do_loop(starting + interval, ending, interval, camera_exid)
     end
   end
 
