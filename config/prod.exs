@@ -25,14 +25,6 @@ config :extractor, :mailgun,
   key: "key-9f635a8602c7430b0807250cf75d5397",
   mode: :prod
 
-config :quantum,
-  cron: [
-    snapshot_extraction: [
-      task: {"Extractor.SnapExtractor", "extract"},
-      schedule: "@daily",
-      overlap: false
-    ]
-  ]
 
 # ## SSL Support
 #
