@@ -26,7 +26,7 @@ config :quantum,
   cron: [
     snapshot_extraction: [
       task: {"Extractor.SnapExtractor", "extract"},
-      schedule: "* * * * *",
+      schedule: "@daily",
       overlap: false
     ]
   ]
