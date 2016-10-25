@@ -21,8 +21,8 @@ config :extractor, Extractor.Endpoint,
 config :logger, level: :info
 
 config :extractor, :mailgun,
-  domain: "https://api.mailgun.net/v3/sandbox119410a316d84b37b641ffdfd590ea15.mailgun.org",
-  key: "key-9f635a8602c7430b0807250cf75d5397",
+  domain: System.get_env("MAILGUN_DOMAIN"),
+  key: System.get_env("MAILGUN_KEY"),
   mode: :prod
 
 
