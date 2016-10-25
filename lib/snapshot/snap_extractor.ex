@@ -27,7 +27,7 @@ defmodule Extractor.SnapExtractor do
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
         Extractor.ExtractMailer.extractor_started
-        Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "secrets/#{camera_exid}"
+        Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}"
       _ ->
         IO.inspect "Status update failed!"
     end
@@ -77,7 +77,7 @@ defmodule Extractor.SnapExtractor do
     IO.inspect data
     File.write("image.jpg", data, [:binary])
     IO.inspect "writing"
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "secrets/#{camera_exid}/#{starting}.jpg" do
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{starting}.jpg" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
