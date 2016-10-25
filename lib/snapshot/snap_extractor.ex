@@ -26,7 +26,7 @@ defmodule Extractor.SnapExtractor do
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
-        Extractor.ExtractMailer.extractor_started
+        send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor))
         Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}"
       _ ->
         IO.inspect "Status update failed!"
@@ -42,7 +42,7 @@ defmodule Extractor.SnapExtractor do
     end)
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2}) do
-      {:ok, _} -> Extractor.ExtractMailer.extractor_completed
+      {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor))
       _ -> IO.inspect "Status update failed!"
     end
   end
@@ -129,4 +129,10 @@ defmodule Extractor.SnapExtractor do
 
   defp intervaling(0), do: 1
   defp intervaling(n), do: n
+
+  defp send_mail_start(false), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_start(true), do: Extractor.ExtractMailer.extractor_started
+
+  defp send_mail_end(false), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true), do: Extractor.ExtractMailer.extractor_completed
 end

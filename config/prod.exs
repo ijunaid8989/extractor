@@ -25,6 +25,8 @@ config :extractor, :mailgun,
   key: System.get_env("MAILGUN_KEY"),
   mode: :prod
 
+# Sending email on start and end of Extractor
+config :extractor, :send_emails_for_extractor, true
 
 # ## SSL Support
 #

@@ -30,6 +30,9 @@ config :extractor, Extractor.Endpoint,
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 
+# Sending email on start and end of Extractor
+config :extractor, :send_emails_for_extractor, false
+
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
