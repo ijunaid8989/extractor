@@ -62,7 +62,6 @@ defmodule Extractor.SnapExtractor do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     case HTTPoison.get(url, [], []) do
       {:ok, response} ->
-        IO.inspect response
         upload(response.status_code, response.body, starting, camera_exid)
         do_loop(starting + interval, ending, interval, camera_exid)
       {:error, %HTTPoison.Error{reason: reason}} ->
