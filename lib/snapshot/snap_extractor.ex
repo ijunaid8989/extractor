@@ -85,7 +85,7 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "written"
     end
   end
-  def upload(_, _response, _starting, _camera_exid), do: IO.inspect "Not an Image!"
+  def upload(_, response, _starting, _camera_exid), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
