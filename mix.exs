@@ -18,9 +18,28 @@ defmodule Extractor.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Extractor, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :tzdata, :httpoison, :dotenv, :quantum]]
+     applications: app_list(Mix.env)]
   end
+
+
+  defp app_list(:dev), do: [:dotenv | app_list]
+  defp app_list(:test), do: [:dotenv | app_list]
+  defp app_list(_), do: app_list
+  defp app_list, do: [
+    :phoenix,
+    :phoenix_pubsub,
+    :phoenix_html,
+    :cowboy,
+    :logger,
+    :gettext,
+    :phoenix_ecto,
+    :postgrex,
+    :tzdata,
+    :httpoison,
+    :dotenv,
+    :quantum
+  ]
+
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
