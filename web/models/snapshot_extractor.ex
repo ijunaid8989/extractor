@@ -41,6 +41,13 @@ defmodule SnapshotExtractor do
     |> Repo.update
   end
 
+  def if_its_running do
+    SnapshotExtractor
+    |> limit(1)
+    |> where(status: 1)
+    |> Repo.one
+  end
+
   def changeset(model, params \\ :invalid) do
     model
     |> cast(params, @required_fields, @optional_fields)

@@ -1,7 +1,7 @@
 defmodule Extractor.SnapExtractor do
 
-  def extract do
-    extractor = SnapshotExtractor.fetch_details
+  def extract(nil), do: IO.inspect "No extrator with status 0"
+  def extract(extractor) do
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
     camera_exid = extractor.camera_exid
