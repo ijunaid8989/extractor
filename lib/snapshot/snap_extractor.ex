@@ -27,7 +27,7 @@ defmodule Extractor.SnapExtractor do
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
         send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor))
-        Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}"
+        Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}/#{extractor.id}"
       _ ->
         IO.inspect "Status update failed!"
     end
@@ -36,7 +36,7 @@ defmodule Extractor.SnapExtractor do
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
       rec_head |> Enum.each(fn(x) ->
-        iterate(x, acc, timezone) |> download(camera_exid, interval)
+        iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id)
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
@@ -52,41 +52,41 @@ defmodule Extractor.SnapExtractor do
     [[head]|get_head_tail(tail)]
   end
 
-  def download([], _camera_exid, _interval), do: IO.inspect "I am empty!"
-  def download([starting, ending], camera_exid, interval) do
-    do_loop(starting, ending, interval, camera_exid)
+  def download([], _camera_exid, _interval, _id), do: IO.inspect "I am empty!"
+  def download([starting, ending], camera_exid, interval, id) do
+    do_loop(starting, ending, interval, camera_exid, id)
   end
 
-  defp do_loop(starting, ending, _interval, _camera_exid) when starting >= ending, do: IO.inspect "We are finished!"
-  defp do_loop(starting, ending, interval, camera_exid) do
+  defp do_loop(starting, ending, _interval, _camera_exid, _id) when starting >= ending, do: IO.inspect "We are finished!"
+  defp do_loop(starting, ending, interval, camera_exid, id) do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     case HTTPoison.get(url, [], []) do
       {:ok, response} ->
-        upload(response.status_code, response.body, starting, camera_exid)
-        do_loop(starting + interval, ending, interval, camera_exid)
+        upload(response.status_code, response.body, starting, camera_exid, id)
+        do_loop(starting + interval, ending, interval, camera_exid, id)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Media: #{reason}!"
         :timer.sleep(:timer.seconds(3))
-        do_loop(starting, ending, interval, camera_exid)
+        do_loop(starting, ending, interval, camera_exid, id)
     end
   end
 
-  def upload(200, response, starting, camera_exid) do
+  def upload(200, response, starting, camera_exid, id) do
     image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
     data = decode_image(image["data"])
     IO.inspect data
     File.write("image.jpg", data, [:binary])
     IO.inspect "writing"
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{starting}.jpg" do
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
-        upload(200, response, starting, camera_exid)
+        upload(200, response, starting, camera_exid, id)
       _ ->
         IO.inspect "written"
     end
   end
-  def upload(_, response, _starting, _camera_exid), do: IO.inspect "Not an Image! #{response}"
+  def upload(_, response, _starting, _camera_exid, _id), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
