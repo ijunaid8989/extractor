@@ -42,8 +42,12 @@ defmodule Extractor.SnapExtractor do
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
 
-    IO.inspect Agent.get(agent, fn list -> list end)
-    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2}) do
+    count =
+    Agent.get(agent, fn list -> list end)
+    |> Enum.filter(fn(item) -> item end)
+    |> Enum.count
+
+    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
       {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor))
       _ -> IO.inspect "Status update failed!"
     end
@@ -66,7 +70,6 @@ defmodule Extractor.SnapExtractor do
       {:ok, response} ->
         upload(response.status_code, response.body, starting, camera_exid, id)
         Agent.update(agent, fn list -> ["true" | list] end)
-        IO.inspect Agent.get(agent, fn list -> list end)
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Media: #{reason}!"
