@@ -69,7 +69,7 @@ defmodule Extractor.SnapExtractor do
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         IO.inspect "Noothing found adding 1 to date"
-        do_loop(starting + 1, ending, interval, camera_exid, id, agent)
+        do_loop(starting + 300, ending, interval, camera_exid, id, agent)
       {:ok, response} ->
         upload(response.status_code, response.body, starting, camera_exid, id, agent)
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
