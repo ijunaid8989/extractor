@@ -68,8 +68,7 @@ defmodule Extractor.SnapExtractor do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     case HTTPoison.get(url, [], []) do
       {:ok, response} ->
-        upload(response.status_code, response.body, starting, camera_exid, id)
-        Agent.update(agent, fn list -> ["true" | list] end)
+        upload(response.status_code, response.body, starting, camera_exid, id, agent)
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Media: #{reason}!"
@@ -78,7 +77,7 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
-  def upload(200, response, starting, camera_exid, id) do
+  def upload(200, response, starting, camera_exid, id, agent) do
     image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
     data = decode_image(image["data"])
     IO.inspect data
@@ -88,12 +87,13 @@ defmodule Extractor.SnapExtractor do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
-        upload(200, response, starting, camera_exid, id)
+        upload(200, response, starting, camera_exid, id, agent)
       _ ->
+        Agent.update(agent, fn list -> ["true" | list] end)
         IO.inspect "written"
     end
   end
-  def upload(_, response, _starting, _camera_exid, _id), do: IO.inspect "Not an Image! #{response}"
+  def upload(_, response, _starting, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
