@@ -5,6 +5,7 @@ defmodule Extractor.SnapExtractor do
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
     camera_exid = extractor.camera_exid
+    {:ok, agent} = Agent.start_link fn -> [] end
 
     timezone =
       case extractor.timezone do
@@ -36,11 +37,12 @@ defmodule Extractor.SnapExtractor do
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
       rec_head |> Enum.each(fn(x) ->
-        iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id)
+        iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
     end)
 
+    IO.inspect Agent.get(agent, fn list -> list end)
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2}) do
       {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor))
       _ -> IO.inspect "Status update failed!"
@@ -52,22 +54,24 @@ defmodule Extractor.SnapExtractor do
     [[head]|get_head_tail(tail)]
   end
 
-  def download([], _camera_exid, _interval, _id), do: IO.inspect "I am empty!"
-  def download([starting, ending], camera_exid, interval, id) do
-    do_loop(starting, ending, interval, camera_exid, id)
+  def download([], _camera_exid, _interval, _id, _agent), do: IO.inspect "I am empty!"
+  def download([starting, ending], camera_exid, interval, id, agent) do
+    do_loop(starting, ending, interval, camera_exid, id, agent)
   end
 
-  defp do_loop(starting, ending, _interval, _camera_exid, _id) when starting >= ending, do: IO.inspect "We are finished!"
-  defp do_loop(starting, ending, interval, camera_exid, id) do
+  defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
+  defp do_loop(starting, ending, interval, camera_exid, id, agent) do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     case HTTPoison.get(url, [], []) do
       {:ok, response} ->
         upload(response.status_code, response.body, starting, camera_exid, id)
-        do_loop(starting + interval, ending, interval, camera_exid, id)
+        Agent.update(agent, fn list -> ["true" | list] end)
+        IO.inspect Agent.get(agent, fn list -> list end)
+        do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Media: #{reason}!"
         :timer.sleep(:timer.seconds(3))
-        do_loop(starting, ending, interval, camera_exid, id)
+        do_loop(starting, ending, interval, camera_exid, id, agent)
     end
   end
 
