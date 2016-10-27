@@ -68,8 +68,8 @@ defmodule Extractor.SnapExtractor do
     url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.inspect "Noothing found adding 1 to date"
-        do_loop(starting + 300, ending, interval, camera_exid, id, agent)
+        IO.inspect "Nothing found adding 1Min to date"
+        do_loop(starting + 60, ending, interval, camera_exid, id, agent)
       {:ok, response} ->
         upload(response.status_code, response.body, starting, camera_exid, id, agent)
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
