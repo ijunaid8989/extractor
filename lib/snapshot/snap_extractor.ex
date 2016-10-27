@@ -48,7 +48,7 @@ defmodule Extractor.SnapExtractor do
     |> Enum.count
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
-      {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor))
+      {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count)
       _ -> IO.inspect "Status update failed!"
     end
   end
@@ -141,6 +141,6 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_start(false), do: IO.inspect "We are in Development Mode!"
   defp send_mail_start(true), do: Extractor.ExtractMailer.extractor_started
 
-  defp send_mail_end(false), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_end(true), do: Extractor.ExtractMailer.extractor_completed
+  defp send_mail_end(false, _count), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true, count), do: Extractor.ExtractMailer.extractor_completed(count)
 end

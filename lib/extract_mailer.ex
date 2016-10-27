@@ -14,13 +14,13 @@ defmodule Extractor.ExtractMailer do
       text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt", year: @year)
   end
 
-  def extractor_completed do
+  def extractor_completed(count) do
     Mailgun.Client.send_email @config,
       to: "junaid@evercam.io",
       subject: "SnapShot Extraction Completed",
       from: @from,
       bcc: "marco@evercam.io",
-      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", year: @year),
-      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", year: @year)
+      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", count: count),
+      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", count: count)
   end
 end
