@@ -29,7 +29,7 @@ defmodule SnapshotExtractor do
     |> limit(1)
     |> where(status: 0)
     |> join(:inner_lateral, [se], cam in fragment("SELECT * FROM cameras as cam WHERE cam.id = ?", se.camera_id))
-    |> select([se, cam], %{ id: se.id, from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone})
+    |> select([se, cam], %{ id: se.id, from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone, camera_name: cam.name})
     |> Repo.one
   end
 
