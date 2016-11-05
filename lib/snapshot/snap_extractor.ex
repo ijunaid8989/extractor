@@ -65,24 +65,29 @@ defmodule Extractor.SnapExtractor do
 
   defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid, id, agent) do
-    url = "#{System.get_env["EVERCAM_URL"]}/#{camera_exid}/recordings/snapshots/#{starting}?with_data=true&range=2&api_id=#{System.get_env["USER_ID"]}&api_key=#{System.get_env["USER_KEY"]}&notes=Evercam+Proxy"
+    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
+    url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+    IO.inspect url
     case HTTPoison.get(url, [], []) do
-      {:ok, response} ->
-        upload(response.status_code, response.body, starting, camera_exid, id, agent)
+      {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
+        upload(200, body, starting, camera_exid, id, agent)
+        IO.inspect "Going for NEXT"
+        do_loop(starting + interval, ending, interval, camera_exid, id, agent)
+      {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
+        IO.inspect "we have nothing"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect "Media: #{reason}!"
+        IO.inspect "Weed: #{reason}!"
         :timer.sleep(:timer.seconds(3))
         do_loop(starting, ending, interval, camera_exid, id, agent)
     end
   end
 
   def upload(200, response, starting, camera_exid, id, agent) do
-    image = response |> Poison.decode! |> Map.get("snapshots") |> List.first
-    data = decode_image(image["data"])
-    IO.inspect data
-    File.write("image.jpg", data, [:binary])
+    IO.inspect response
+    imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
+    File.close imagef
     case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
       {:skipping, reason} ->
         IO.inspect reason
@@ -143,4 +148,34 @@ defmodule Extractor.SnapExtractor do
 
   defp send_mail_end(false, _count, _camera_name), do: IO.inspect "We are in Development Mode!"
   defp send_mail_end(true, count, camera_name), do: Extractor.ExtractMailer.extractor_completed(count, camera_name)
+
+  defp make_me_complete(date) do
+    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
+    month =
+      case Integer.digits(month) do
+        [_, _] -> month
+        [_] -> "0#{to_string(month)}"
+      end
+    day =
+      case Integer.digits(day) do
+        [_, _] -> day
+        [_] -> "0#{to_string(day)}"
+      end
+    hour =
+      case Integer.digits(hour) do
+        [_, _] -> hour
+        [_] -> "0#{to_string(hour)}"
+      end
+    min =
+      case Integer.digits(min) do
+        [_, _] -> min
+        [_] -> "0#{to_string(min)}"
+      end
+    sec =
+      case Integer.digits(sec) do
+        [_, _] -> sec
+        [_] -> "0#{to_string(sec)}"
+      end
+    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
+  end
 end
