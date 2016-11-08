@@ -74,8 +74,8 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "Going for NEXT"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-        IO.inspect "we have nothing"
-        do_loop(starting + interval, ending, interval, camera_exid, id, agent)
+        IO.inspect "we have nothing going to 3 minutes"
+        do_loop(starting + 180, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Weed: #{reason}!"
         :timer.sleep(:timer.seconds(3))
