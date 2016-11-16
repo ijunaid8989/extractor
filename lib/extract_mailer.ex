@@ -9,7 +9,7 @@ defmodule Extractor.ExtractMailer do
       to: "junaid@evercam.io",
       subject: "SnapShot Extraction Started",
       from: @from,
-      bcc: "marco@evercam.io",
+      bcc: "marco@evercam.io,info@lensmen.ie",
       html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.html", year: @year),
       text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_started.txt", year: @year)
   end
@@ -19,7 +19,7 @@ defmodule Extractor.ExtractMailer do
       to: "junaid@evercam.io",
       subject: "SnapShot Extraction Completed",
       from: @from,
-      bcc: "marco@evercam.io",
+      bcc: "marco@evercam.io,info@lensmen.ie",
       html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", count: count, camera_name: camera_name),
       text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", count: count, camera_name: camera_name)
   end
