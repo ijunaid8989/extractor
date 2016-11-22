@@ -1,4 +1,5 @@
 defmodule Extractor.SnapExtractor do
+  require IEx
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -23,6 +24,7 @@ defmodule Extractor.SnapExtractor do
       |> Ecto.DateTime.to_erl
       |> Calendar.DateTime.from_erl!(timezone)
 
+    IEx.pry
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
@@ -50,8 +52,8 @@ defmodule Extractor.SnapExtractor do
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
       {:ok, _} ->
         instruction = %{
-          from_date: start_date,
-          to_date: end_date,
+          from_date: start_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M"),
+          to_date: end_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M"),
           schedule: schedule,
           frequency: interval
         }
