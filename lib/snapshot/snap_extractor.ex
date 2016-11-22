@@ -1,5 +1,4 @@
 defmodule Extractor.SnapExtractor do
-  require IEx
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -24,7 +23,6 @@ defmodule Extractor.SnapExtractor do
       |> Ecto.DateTime.to_erl
       |> Calendar.DateTime.from_erl!(timezone)
 
-    IEx.pry
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
