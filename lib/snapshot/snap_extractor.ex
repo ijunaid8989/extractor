@@ -48,7 +48,17 @@ defmodule Extractor.SnapExtractor do
     |> Enum.count
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
-      {:ok, _} -> send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name)
+      {:ok, _} ->
+        instruction = %{
+          from_date: start_date,
+          to_date: end_date,
+          schedule: schedule,
+          frequency: interval
+        }
+        File.write("instruction.json", Poison.encode!(instruction), [:binary])
+        Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
+        IO.inspect "instruction written"
+        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name)
       _ -> IO.inspect "Status update failed!"
     end
   end
