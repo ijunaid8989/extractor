@@ -53,7 +53,7 @@ defmodule Extractor.SnapExtractor do
           from_date: start_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M"),
           to_date: end_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M"),
           schedule: schedule,
-          frequency: interval
+          frequency: interval |> humanize_interval
         }
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
@@ -188,4 +188,16 @@ defmodule Extractor.SnapExtractor do
       end
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
   end
+
+  defp humanize_interval(60), do: "1 Frame Every 1 min"
+  defp humanize_interval(300), do: "1 Frame Every 5 min"
+  defp humanize_interval(600), do: "1 Frame Every 10 min"
+  defp humanize_interval(1200), do: "1 Frame Every 20 min"
+  defp humanize_interval(1800), do: "1 Frame Every 30 min"
+  defp humanize_interval(3600), do: "1 Frame Every hour"
+  defp humanize_interval(7200), do: "1 Frame Every 2 hour"
+  defp humanize_interval(21600), do: "1 Frame Every 6 hour"
+  defp humanize_interval(43200), do: "1 Frame Every 12 hour"
+  defp humanize_interval(86400), do: "1 Frame Every 24 hour"
+  defp humanize_interval(1), do: "All"
 end
