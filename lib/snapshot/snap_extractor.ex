@@ -43,9 +43,9 @@ defmodule Extractor.SnapExtractor do
     end)
 
     count =
-    Agent.get(agent, fn list -> list end)
-    |> Enum.filter(fn(item) -> item end)
-    |> Enum.count
+      Agent.get(agent, fn list -> list end)
+      |> Enum.filter(fn(item) -> item end)
+      |> Enum.count
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
       {:ok, _} ->
