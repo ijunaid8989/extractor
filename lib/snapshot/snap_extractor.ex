@@ -6,6 +6,7 @@ defmodule Extractor.SnapExtractor do
     interval = extractor.interval |> intervaling
     camera_exid = extractor.camera_exid
     {:ok, agent} = Agent.start_link fn -> [] end
+    {:ok, t_agent} = Agent.start_link fn -> [] end
 
     timezone =
       case extractor.timezone do
@@ -37,6 +38,15 @@ defmodule Extractor.SnapExtractor do
       day_of_week = acc |> Calendar.Date.day_of_week_name
       rec_head = get_head_tail(schedule[day_of_week])
       rec_head |> Enum.each(fn(x) ->
+        iterate(x, acc, timezone) |> t_download(interval, t_agent)
+      end)
+      acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+    end)
+
+    1..total_days |> Enum.reduce(start_date, fn _i, acc ->
+      day_of_week = acc |> Calendar.Date.day_of_week_name
+      rec_head = get_head_tail(schedule[day_of_week])
+      rec_head |> Enum.each(fn(x) ->
         iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
       end)
       acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
@@ -44,6 +54,11 @@ defmodule Extractor.SnapExtractor do
 
     count =
       Agent.get(agent, fn list -> list end)
+      |> Enum.filter(fn(item) -> item end)
+      |> Enum.count
+
+    expected_count =
+      Agent.get(t_agent, fn list -> list end)
       |> Enum.filter(fn(item) -> item end)
       |> Enum.count
 
@@ -58,7 +73,7 @@ defmodule Extractor.SnapExtractor do
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
         IO.inspect "instruction written"
-        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name)
+        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count)
       _ -> IO.inspect "Status update failed!"
     end
   end
@@ -66,6 +81,17 @@ defmodule Extractor.SnapExtractor do
   defp get_head_tail([]), do: []
   defp get_head_tail([head|tail]) do
     [[head]|get_head_tail(tail)]
+  end
+
+  def t_download([], _interval, _t_agent), do: IO.inspect "I am empty!"
+  def t_download([starting, ending], interval, t_agent) do
+    t_do_loop(starting, ending, interval, t_agent)
+  end
+
+  defp t_do_loop(starting, ending, _interval, _t_agent) when starting >= ending, do: IO.inspect "We are finished!"
+  defp t_do_loop(starting, ending, interval, t_agent) do
+    Agent.update(t_agent, fn list -> ["true" | list] end)
+    t_do_loop(starting + interval, ending, interval, t_agent)
   end
 
   def download([], _camera_exid, _interval, _id, _agent), do: IO.inspect "I am empty!"
@@ -156,8 +182,8 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_start(false), do: IO.inspect "We are in Development Mode!"
   defp send_mail_start(true), do: Extractor.ExtractMailer.extractor_started
 
-  defp send_mail_end(false, _count, _camera_name), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_end(true, count, camera_name), do: Extractor.ExtractMailer.extractor_completed(count, camera_name)
+  defp send_mail_end(false, _count, _camera_name, _expected_count), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true, count, camera_name, expected_count), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count)
 
   defp make_me_complete(date) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
