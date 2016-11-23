@@ -1,1 +1,1 @@
-<p>Extractor has been Completed with <%= @count %> images for <%= @camera_name %></p>
+<p>Extractor has been Completed with <%= @count %> out of <%= @expected_count %> images for <%= @camera_name %></p>
