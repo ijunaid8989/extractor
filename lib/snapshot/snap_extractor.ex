@@ -187,31 +187,11 @@ defmodule Extractor.SnapExtractor do
 
   defp make_me_complete(date) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
-    month =
-      case Integer.digits(month) do
-        [_, _] -> month
-        [_] -> "0#{to_string(month)}"
-      end
-    day =
-      case Integer.digits(day) do
-        [_, _] -> day
-        [_] -> "0#{to_string(day)}"
-      end
-    hour =
-      case Integer.digits(hour) do
-        [_, _] -> hour
-        [_] -> "0#{to_string(hour)}"
-      end
-    min =
-      case Integer.digits(min) do
-        [_, _] -> min
-        [_] -> "0#{to_string(min)}"
-      end
-    sec =
-      case Integer.digits(sec) do
-        [_, _] -> sec
-        [_] -> "0#{to_string(sec)}"
-      end
+    month = String.rjust("#{month}", 2, ?0)
+    day = String.rjust("#{day}", 2, ?0)
+    hour = String.rjust("#{hour}", 2, ?0)
+    min = String.rjust("#{min}", 2, ?0)
+    sec = String.rjust("#{sec}", 2, ?0)
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
   end
 
