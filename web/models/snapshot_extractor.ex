@@ -15,6 +15,7 @@ defmodule SnapshotExtractor do
     field :schedule, Extractor.Types.JSON
     field :status, :integer
     field :notes, :string
+    field :requestor, :string
     timestamps(inserted_at: :created_at, type: Ecto.DateTime, default: Ecto.DateTime.utc)
   end
 
