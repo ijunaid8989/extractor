@@ -44,12 +44,19 @@ defmodule Extractor.SnapExtractor do
     end)
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
-      day_of_week = acc |> Calendar.Date.day_of_week_name
-      rec_head = get_head_tail(schedule[day_of_week])
-      rec_head |> Enum.each(fn(x) ->
-        iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
-      end)
-      acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+      url_day = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
+      with :ok <- ensure_a_day(acc, url_day)
+      do
+        day_of_week = acc |> Calendar.Date.day_of_week_name
+        rec_head = get_head_tail(schedule[day_of_week])
+        rec_head |> Enum.each(fn(x) ->
+          iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
+        end)
+        acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+      else
+        :not_ok ->
+          acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+      end
     end)
 
     count =
@@ -206,4 +213,24 @@ defmodule Extractor.SnapExtractor do
   defp humanize_interval(43200), do: "1 Frame Every 12 hour"
   defp humanize_interval(86400), do: "1 Frame Every 24 hour"
   defp humanize_interval(1), do: "All"
+
+  defp request_from_seaweedfs(url, type, attribute) do
+    with {:ok, response} <- HTTPoison.get(url, [], []),
+         %HTTPoison.Response{status_code: 200, body: body} <- response,
+         {:ok, data} <- Poison.decode(body),
+         true <- is_list(data[type]) do
+      Enum.map(data[type], fn(item) -> item[attribute] end)
+    else
+      _ -> []
+    end
+  end
+
+  defp ensure_a_day(date, url) do
+    day = Calendar.Strftime.strftime!(date, "%Y/%m/%d/")
+    url_day = url <> "#{day}"
+    case request_from_seaweedfs(url_day, "Subdirectories", "Name") |> Enum.empty? do
+      true -> :not_ok
+      false -> :ok
+    end
+  end
 end
