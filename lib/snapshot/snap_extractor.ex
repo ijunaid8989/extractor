@@ -114,10 +114,10 @@ defmodule Extractor.SnapExtractor do
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         upload(200, body, starting, camera_exid, id, agent)
-        IO.inspect "Going for NEXT"
+        IO.inspect "Going for NEXT!"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-        IO.inspect "we have nothing going to 3 minutes"
+        IO.inspect "Getting nearest!"
         do_loop(starting + 1, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Weed: #{reason}!"
