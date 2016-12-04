@@ -131,7 +131,7 @@ defmodule Extractor.SnapExtractor do
           {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
             upload(200, body, starting, camera_exid, id, agent)
             IO.inspect "Going for NEXT!"
-          {:ok, %HTTPoison.Response{body: "", status_code: 400}} ->
+          {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
             IO.inspect "Not An Image!"
           {:error, %HTTPoison.Error{reason: reason}} ->
             IO.inspect "Weed: #{reason}!"
