@@ -1,1 +1,7 @@
-<p>Extractor has been Completed with <%= @count %> out of <%= @expected_count %> images for <%= @camera_name %></p>
+<p>Extractor has been Completed with <%= @count %> out of <%= @expected_count %> images for <%= @camera_name %></p> with the instructions written below!
+<br>
+<br>
+<p>From: <%= @start_date %></p>
+<p>To: <%= @to_date %></p>
+<p>Interval: <%= @interval %></p>
+<p>Schedule: <%= @schedule %></p>
