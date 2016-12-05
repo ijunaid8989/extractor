@@ -129,7 +129,7 @@ defmodule Extractor.SnapExtractor do
         IO.inspect url_for_file
         case HTTPoison.get(url_for_file, [], []) do
           {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
-            upload(200, body, starting, camera_exid, id, agent)
+            upload(200, body, file, camera_exid, id, agent)
             IO.inspect "Going for NEXT!"
           {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
             IO.inspect "Not An Image!"
@@ -141,22 +141,22 @@ defmodule Extractor.SnapExtractor do
     end)
   end
 
-  def upload(200, response, starting, camera_exid, id, agent) do
+  def upload(200, response, file_name, camera_exid, id, agent) do
     IO.inspect response
     imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{file_name}" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
-        upload(200, response, starting, camera_exid, id, agent)
+        upload(200, response, file_name, camera_exid, id, agent)
       _ ->
         Agent.update(agent, fn list -> ["true" | list] end)
         IO.inspect "written"
     end
   end
-  def upload(_, response, _starting, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
+  def upload(_, response, _file_name, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
