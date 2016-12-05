@@ -5,10 +5,9 @@
 <p>To: <%= @to_date %></p>
 <p>Interval: <%= @interval %></p>
 <p>Schedule:</p>
-<br>
 <p>
   <%= for {key, value} <- @schedule do %>
-    <%= key %>
-    <%= value %>
+    <%= key %> <br>
+    <%= value %> <br>
   <% end %>
 </p>
