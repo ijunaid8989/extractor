@@ -4,4 +4,4 @@
 <p>From: <%= @start_date %></p>
 <p>To: <%= @to_date %></p>
 <p>Interval: <%= @interval %></p>
-<p>Schedule: <%= @schedule %></p>
+<p>Schedule: <%= Poison.encode!(@schedule) %></p>
