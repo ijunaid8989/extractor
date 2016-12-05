@@ -146,7 +146,8 @@ defmodule Extractor.SnapExtractor do
     imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{file_name}" do
+    attached_str = Enum.concat(?a..?z, ?0..?9) |> Enum.take_random(4)
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{attached_str}-#{file_name}" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
