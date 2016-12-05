@@ -120,7 +120,7 @@ defmodule Extractor.SnapExtractor do
       end)
     {starting_hour, ""} = Integer.parse(s_hour)
     {ending_hour, ""} = Integer.parse(e_hour)
-    valid_hours = Enum.filter(all_hour, fn(x) -> x >= starting_hour && x <= ending_hour end)
+    valid_hours = Enum.filter(all_hour, fn(x) -> x >= starting_hour && x < ending_hour end)
     Enum.each(valid_hours, fn(hour) ->
       url_for_hour = url <> "#{String.rjust("#{hour}", 2, ?0)}/?limit=3600"
       all_files = request_from_seaweedfs(url_for_hour, "Files", "name") |> Enum.uniq |> Enum.sort |> Enum.take_every(interval)
