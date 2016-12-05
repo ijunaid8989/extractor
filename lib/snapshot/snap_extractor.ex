@@ -109,7 +109,7 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid, id, agent) do
     %{year: s_year, month: s_month, day: s_day, hour: s_hour, min: _s_min, sec: _s_sec} = make_me_complete(starting)
-    %{year: _e_year, month: _e_month, day: _e_day, hour: e_hour, min: _e_min, sec: _e_sec} = make_me_complete(ending)
+    %{year: _e_year, month: _e_month, day: _e_day, hour: e_hour, min: e_min, sec: _e_sec} = make_me_complete(ending)
     url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{s_year}/#{s_month}/#{s_day}/"
     all_hour =
       request_from_seaweedfs(url, "Subdirectories", "Name")
@@ -118,8 +118,9 @@ defmodule Extractor.SnapExtractor do
       |> Enum.map(fn(h) ->
         Integer.parse(h) |> elem(0)
       end)
+    {ending_minutes, ""} = Integer.parse(e_min)
     {starting_hour, ""} = Integer.parse(s_hour)
-    {ending_hour, ""} = Integer.parse(e_hour)
+    ending_hour = Integer.parse(e_hour) |> elem(0) |> get_ending_hour(ending_minutes)
     valid_hours = Enum.filter(all_hour, fn(x) -> x >= starting_hour && x < ending_hour end)
     Enum.each(valid_hours, fn(hour) ->
       url_for_hour = url <> "#{String.rjust("#{hour}", 2, ?0)}/?limit=3600"
@@ -139,6 +140,13 @@ defmodule Extractor.SnapExtractor do
         end
       end)
     end)
+  end
+
+  def get_ending_hour(ending_hour, ending_minutes) do
+    case ending_minutes > 0 do
+      true -> ending_hour + 1
+      false -> ending_hour
+    end
   end
 
   def upload(200, response, file_name, camera_exid, id, agent) do
