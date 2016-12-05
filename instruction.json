@@ -1,1 +1,1 @@
-{"to_date":"Wednesday, Nov 30 2016, 00:00","schedule":{"Wednesday":["8:0-20:0"],"Tuesday":["8:0-20:0"],"Thursday":["8:0-20:0"],"Sunday":[],"Saturday":[],"Monday":["8:0-20:0"],"Friday":["8:0-20:0"]},"from_date":"Tuesday, Nov 01 2016, 00:00","frequency":"1 Frame Every 10 min"}
+{"to_date":"Monday, Dec 05 2016, 00:00","schedule":{"Wednesday":[],"Tuesday":[],"Thursday":[],"Sunday":[],"Saturday":[],"Monday":["2:0-7:0"],"Friday":[]},"from_date":"Monday, Dec 05 2016, 00:00","frequency":"1 Frame Every 1 min"}
