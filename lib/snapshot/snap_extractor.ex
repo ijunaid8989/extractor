@@ -113,38 +113,22 @@ defmodule Extractor.SnapExtractor do
 
   defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid, id, agent) do
-    %{year: s_year, month: s_month, day: s_day, hour: s_hour, min: _s_min, sec: _s_sec} = make_me_complete(starting)
-    %{year: _e_year, month: _e_month, day: _e_day, hour: e_hour, min: e_min, sec: _e_sec} = make_me_complete(ending)
-    url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{s_year}/#{s_month}/#{s_day}/"
-    all_hour =
-      request_from_seaweedfs(url, "Subdirectories", "Name")
-      |> Enum.uniq
-      |> Enum.sort
-      |> Enum.map(fn(h) ->
-        Integer.parse(h) |> elem(0)
-      end)
-    {ending_minutes, ""} = Integer.parse(e_min)
-    {starting_hour, ""} = Integer.parse(s_hour)
-    ending_hour = Integer.parse(e_hour) |> elem(0) |> get_ending_hour(ending_minutes)
-    valid_hours = Enum.filter(all_hour, fn(x) -> x >= starting_hour && x < ending_hour end)
-    Enum.each(valid_hours, fn(hour) ->
-      url_for_hour = url <> "#{String.rjust("#{hour}", 2, ?0)}/?limit=3600"
-      all_files = request_from_seaweedfs(url_for_hour, "Files", "name") |> Enum.uniq |> Enum.sort |> Enum.take_every(interval)
-      Enum.each(all_files, fn(file) ->
-        url_for_file = url <> "#{String.rjust("#{hour}", 2, ?0)}/" <> "#{file}"
-        IO.inspect url_for_file
-        case HTTPoison.get(url_for_file, [], []) do
-          {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
-            upload(200, body, file, camera_exid, id, agent)
-            IO.inspect "Going for NEXT!"
-          {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-            IO.inspect "Not An Image!"
-          {:error, %HTTPoison.Error{reason: reason}} ->
-            IO.inspect "Weed: #{reason}!"
-            :timer.sleep(:timer.seconds(3))
-        end
-      end)
-    end)
+    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
+    url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+    IO.inspect url
+    case HTTPoison.get(url, [], []) do
+      {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
+        upload(200, body, starting, camera_exid, id, agent)
+        IO.inspect "Going for NEXT!"
+        do_loop(starting + interval, ending, interval, camera_exid, id, agent)
+      {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
+        IO.inspect "Getting nearest!"
+        do_loop(starting + 1, ending, interval, camera_exid, id, agent)
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        IO.inspect "Weed: #{reason}!"
+        :timer.sleep(:timer.seconds(3))
+        do_loop(starting, ending, interval, camera_exid, id, agent)
+    end
   end
 
   def get_ending_hour(ending_hour, ending_minutes) do
@@ -154,23 +138,22 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
-  def upload(200, response, file_name, camera_exid, id, agent) do
+  def upload(200, response, starting, camera_exid, id, agent) do
     IO.inspect response
     imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    attached_str = Enum.concat(?a..?z, ?0..?9) |> Enum.take_random(4)
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{attached_str}-#{file_name}" do
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
-        upload(200, response, file_name, camera_exid, id, agent)
+        upload(200, response, starting, camera_exid, id, agent)
       _ ->
         Agent.update(agent, fn list -> ["true" | list] end)
         IO.inspect "written"
     end
   end
-  def upload(_, response, _file_name, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
+  def upload(_, response, _starting, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
