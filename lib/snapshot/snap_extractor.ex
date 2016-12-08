@@ -26,9 +26,14 @@ defmodule Extractor.SnapExtractor do
 
     total_days = find_difference(end_date, start_date) / 86400 |> round |> round_2
 
+    e_start_date = start_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M")
+    e_to_date = end_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M")
+    e_schedule = schedule
+    e_interval = interval |> humanize_interval
+
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
-        send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor))
+        send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor), e_start_date, e_to_date, e_schedule, e_interval, extractor.camera_name)
         Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}/#{extractor.id}"
       _ ->
         IO.inspect "Status update failed!"
@@ -69,11 +74,6 @@ defmodule Extractor.SnapExtractor do
       |> Enum.filter(fn(item) -> item end)
       |> Enum.count
 
-    e_start_date = start_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M")
-    e_to_date = end_date |> Calendar.Strftime.strftime!("%A, %b %d %Y, %H:%M")
-    e_schedule = schedule
-    e_interval = interval |> humanize_interval
-
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
       {:ok, _} ->
         instruction = %{
@@ -85,7 +85,7 @@ defmodule Extractor.SnapExtractor do
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
         IO.inspect "instruction written"
-        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, e_start_date, e_to_date, e_schedule, e_interval)
+        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count)
       _ -> IO.inspect "Status update failed!"
     end
   end
@@ -198,11 +198,11 @@ defmodule Extractor.SnapExtractor do
   defp intervaling(0), do: 1
   defp intervaling(n), do: n
 
-  defp send_mail_start(false), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_start(true), do: Extractor.ExtractMailer.extractor_started
+  defp send_mail_start(false, _e_start_date, _e_to_date, _e_schedule, _e_interval, _camera_name), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_start(true, e_start_date, e_to_date, e_schedule, e_interval, camera_name), do: Extractor.ExtractMailer.extractor_started(e_start_date, e_to_date, e_schedule, e_interval, camera_name)
 
-  defp send_mail_end(false, _count, _camera_name, _expected_count, _e_start_date, _e_to_date, _e_schedule, _e_interval), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_end(true, count, camera_name, expected_count, e_start_date, e_to_date, e_schedule, e_interval), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, e_start_date, e_to_date, e_schedule, e_interval)
+  defp send_mail_end(false, _count, _camera_name, _expected_count), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true, count, camera_name, expected_count), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count)
 
   defp make_me_complete(date) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date

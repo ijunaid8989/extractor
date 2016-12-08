@@ -1,1 +1,7 @@
-<p>Extractor has been started!</p>
+<p>Extractor has been started with the instructions below for <%= @camera_name %>!</p>
+<br>
+<br>
+<p>From: <%= @start_date %></p>
+<p>To: <%= @to_date %></p>
+<p>Interval: <%= @interval %></p>
+<p>Schedule: <%= Poison.encode!(@schedule) %></p>
