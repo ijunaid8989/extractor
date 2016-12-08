@@ -141,10 +141,10 @@ defmodule Extractor.SnapExtractor do
 
   def upload(200, response, starting, camera_exid, id, agent) do
     IO.inspect response
-    imagef = File.write("image.jpg", response, [:binary])
+    imagef = File.write("priv/static/image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
+    case Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "priv/static/image.jpg", "Construction/#{camera_exid}/#{id}/#{starting}.jpg" do
       {:skipping, reason} ->
         IO.inspect reason
         :timer.sleep(:timer.seconds(3))
