@@ -4,6 +4,7 @@ defmodule Extractor.SnapExtractor do
   def extract(extractor) do
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
+    requestor = extractor.requestor
     camera_exid = extractor.camera_exid
     {:ok, agent} = Agent.start_link fn -> [] end
     {:ok, t_agent} = Agent.start_link fn -> [] end
@@ -33,7 +34,7 @@ defmodule Extractor.SnapExtractor do
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
-        send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor), e_start_date, e_to_date, e_schedule, e_interval, extractor.camera_name)
+        send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor), e_start_date, e_to_date, e_schedule, e_interval, extractor.camera_name, requestor)
         Dropbox.mkdir! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "Construction/#{camera_exid}/#{extractor.id}"
       _ ->
         IO.inspect "Status update failed!"
@@ -198,8 +199,8 @@ defmodule Extractor.SnapExtractor do
   defp intervaling(0), do: 1
   defp intervaling(n), do: n
 
-  defp send_mail_start(false, _e_start_date, _e_to_date, _e_schedule, _e_interval, _camera_name), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_start(true, e_start_date, e_to_date, e_schedule, e_interval, camera_name), do: Extractor.ExtractMailer.extractor_started(e_start_date, e_to_date, e_schedule, e_interval, camera_name)
+  defp send_mail_start(false, _e_start_date, _e_to_date, _e_schedule, _e_interval, _camera_name, _requestor), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_start(true, e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor), do: Extractor.ExtractMailer.extractor_started(e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor)
 
   defp send_mail_end(false, _count, _camera_name, _expected_count), do: IO.inspect "We are in Development Mode!"
   defp send_mail_end(true, count, camera_name, expected_count), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count)
