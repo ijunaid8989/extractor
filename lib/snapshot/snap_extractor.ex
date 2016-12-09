@@ -124,13 +124,46 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "Going for NEXT!"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
+        add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+        IO.inspect add_up
         IO.inspect "Getting nearest!"
-        do_loop(starting + 1, ending, interval, camera_exid, id, agent)
+        do_loop(starting + add_up, ending, interval, camera_exid, id, agent)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Weed: #{reason}!"
         :timer.sleep(:timer.seconds(3))
         do_loop(starting, ending, interval, camera_exid, id, agent)
     end
+  end
+
+  defp the_most_nearest(url, starting) do
+    %{year: _year, month: _month, day: _day, hour: _hour, min: min, sec: sec} = make_me_complete(starting)
+    on_miss = "#{min}_#{sec}_000.jpg"
+    IO.inspect on_miss
+    request_from_seaweedfs(url, "Files", "name")
+    |> case do
+      [] -> 3600
+      files ->
+        files |> Enum.uniq |> Enum.sort |> Enum.filter(fn(file) -> file >= on_miss end) |> List.first |> IO.inspect |> nearest_min_sec(on_miss)
+    end
+  end
+
+  defp nearest_min_sec(nil, recent_file) do
+    [r_min, r_sec, _] = String.split(recent_file, "_")
+    r_second = Integer.parse(r_sec) |> elem(0)
+    r_minute =  Integer.parse(r_min) |> elem(0)
+    recent_secs = (r_minute * 60) + r_second
+    3600 - recent_secs
+  end
+  defp nearest_min_sec(near_file, recent_file) do
+    [n_min, n_sec, _] = String.split(near_file, "_")
+    n_second = Integer.parse(n_sec) |> elem(0)
+    n_minute =  Integer.parse(n_min) |> elem(0)
+    [r_min, r_sec, _] = String.split(recent_file, "_")
+    r_second = Integer.parse(r_sec) |> elem(0)
+    r_minute =  Integer.parse(r_min) |> elem(0)
+    near_secs = (n_minute * 60) + n_second
+    recent_secs = (r_minute * 60) + r_second
+    near_secs - recent_secs
   end
 
   def get_ending_hour(ending_hour, ending_minutes) do
