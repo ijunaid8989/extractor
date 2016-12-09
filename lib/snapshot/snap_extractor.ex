@@ -142,7 +142,7 @@ defmodule Extractor.SnapExtractor do
     |> case do
       [] -> 3600
       files ->
-        files |> Enum.uniq |> Enum.sort |> Enum.filter(fn(file) -> file >= on_miss end) |> IO.inspect |> List.first |> nearest_min_sec(on_miss)
+        files |> Enum.uniq |> Enum.sort |> Enum.filter(fn(file) -> file >= on_miss end) |> List.first |> IO.inspect |> nearest_min_sec(on_miss)
     end
   end
 
