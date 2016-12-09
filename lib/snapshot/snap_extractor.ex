@@ -92,6 +92,7 @@ defmodule Extractor.SnapExtractor do
   end
 
   defp get_head_tail([]), do: []
+  defp get_head_tail(nil), do: []
   defp get_head_tail([head|tail]) do
     [[head]|get_head_tail(tail)]
   end
