@@ -141,9 +141,14 @@ defmodule Extractor.SnapExtractor do
     IO.inspect on_miss
     request_from_seaweedfs(url, "Files", "name")
     |> case do
-      [] -> 3600
+      [] ->
+        [r_min, r_sec, _] = String.split(on_miss, "_")
+        r_second = Integer.parse(r_sec) |> elem(0)
+        r_minute =  Integer.parse(r_min) |> elem(0)
+        recent_secs = (r_minute * 60) + r_second
+        3600 - recent_secs
       files ->
-        files |> Enum.uniq |> Enum.sort |> Enum.filter(fn(file) -> file >= on_miss end) |> List.first |> IO.inspect |> nearest_min_sec(on_miss)
+        files |> Enum.uniq |> Enum.sort |> Enum.filter(fn(file) -> file > on_miss end) |> List.first |> IO.inspect |> nearest_min_sec(on_miss)
     end
   end
 
