@@ -139,7 +139,6 @@ defmodule Extractor.SnapExtractor do
     on_miss = "#{min}_#{sec}_000.jpg"
     IO.inspect on_miss
     request_from_seaweedfs(url, "Files", "name")
-    |> IO.inspect
     |> case do
       [] -> 3600
       files ->
