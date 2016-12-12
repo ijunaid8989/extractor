@@ -257,6 +257,7 @@ defmodule Extractor.SnapExtractor do
   defp humanize_interval(60), do: "1 Frame Every 1 min"
   defp humanize_interval(300), do: "1 Frame Every 5 min"
   defp humanize_interval(600), do: "1 Frame Every 10 min"
+  defp humanize_interval(900), do: "1 Frame Every 15 min"
   defp humanize_interval(1200), do: "1 Frame Every 20 min"
   defp humanize_interval(1800), do: "1 Frame Every 30 min"
   defp humanize_interval(3600), do: "1 Frame Every hour"
