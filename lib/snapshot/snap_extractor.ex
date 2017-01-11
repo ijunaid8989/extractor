@@ -75,7 +75,7 @@ defmodule Extractor.SnapExtractor do
       |> Enum.filter(fn(item) -> item end)
       |> Enum.count
 
-    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "total images = #{count}"}) do
+    case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "Extracted Images = #{count} -- Expected Count = #{expected_count}"}) do
       {:ok, _} ->
         instruction = %{
           from_date: e_start_date,
