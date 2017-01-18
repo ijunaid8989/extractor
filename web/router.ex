@@ -20,7 +20,9 @@ defmodule Extractor.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", Extractor do
-  #   pipe_through :api
-  # end
+  scope "/api", Extractor do
+    pipe_through :api
+
+    get "/:camera_exid/newest", SnapshotExtractorController, :newest
+  end
 end
