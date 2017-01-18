@@ -46,7 +46,7 @@ defmodule Extractor.SnapExtractor do
       rec_head |> Enum.each(fn(x) ->
         iterate(x, acc, timezone) |> t_download(interval, t_agent)
       end)
-      acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+      acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl(timezone, {123456, 6}) |> ambiguous_handle |> Calendar.DateTime.add!(86400)
     end)
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
@@ -58,10 +58,10 @@ defmodule Extractor.SnapExtractor do
         rec_head |> Enum.each(fn(x) ->
           iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
         end)
-        acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+        acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl(timezone, {123456, 6}) |> ambiguous_handle |> Calendar.DateTime.add!(86400)
       else
         :not_ok ->
-          acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl!(timezone, {123456, 6}) |> Calendar.DateTime.add!(86400)
+          acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl(timezone, {123456, 6}) |> ambiguous_handle |> Calendar.DateTime.add!(86400)
       end
     end)
 
@@ -88,6 +88,13 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "instruction written"
         send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid)
       _ -> IO.inspect "Status update failed!"
+    end
+  end
+
+  defp ambiguous_handle(value) do
+    case value do
+      {:ok, datetime} -> datetime
+      {:ambiguous, datetime} -> datetime.possible_date_times |> hd
     end
   end
 
