@@ -11,7 +11,7 @@ defmodule Extractor.SnapshotExtractorController do
          {:month, month} <- newest_month(url <> "#{year}/"),
          {:day, day} <- newest_day(url <> "#{year}/" <> "#{month}/"),
          {:hour, hour} <- newest_hour(url <> "#{year}/" <> "#{month}/" <> "#{day}/"),
-         {:image, latest_image} <- newest_image(url <> "#{year}/" <> "#{month}/" <> "#{day}/" <> "#{hour}/") do
+         {:image, latest_image} <- newest_image(url <> "#{year}/" <> "#{month}/" <> "#{day}/" <> "#{hour}/?limit=3600") do
       json(conn, %{message: url <> "#{year}/" <> "#{month}/" <> "#{day}/" <> "#{hour}/" <> "#{latest_image}"})
     else
       _ -> []
