@@ -86,7 +86,7 @@ defmodule Extractor.SnapExtractor do
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
         IO.inspect "instruction written"
-        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid)
+        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid, requestor)
       _ -> IO.inspect "Status update failed!"
     end
   end
@@ -248,8 +248,8 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_start(false, _e_start_date, _e_to_date, _e_schedule, _e_interval, _camera_name, _requestor), do: IO.inspect "We are in Development Mode!"
   defp send_mail_start(true, e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor), do: Extractor.ExtractMailer.extractor_started(e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor)
 
-  defp send_mail_end(false, _count, _camera_name, _expected_count, _extractor_id, _camera_exid), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid)
+  defp send_mail_end(false, _count, _camera_name, _expected_count, _extractor_id, _camera_exid, _requestor), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid, requestor), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid, requestor)
 
   defp make_me_complete(date) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
