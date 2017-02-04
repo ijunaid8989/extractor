@@ -86,7 +86,8 @@ defmodule Extractor.SnapExtractor do
           from_date: e_start_date,
           to_date: e_to_date,
           schedule: e_schedule,
-          frequency: e_interval
+          frequency: e_interval,
+          execution_time: execution_time
         }
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
