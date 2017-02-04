@@ -1,3 +1,5 @@
 <p>Extractor has been Completed with <%= @count %> out of <%= @expected_count %> images for <%= @camera_name %>.</p>
 
+<p>The whole process took <%= @execution_time %> minutes!</p>
+
 <p>You can see required files at <a href="https://www.dropbox.com/home/Construction/<%= @camera_exid %>/<%= @extractor_id %>">DropBox</a></p>

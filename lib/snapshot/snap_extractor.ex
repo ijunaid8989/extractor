@@ -77,7 +77,8 @@ defmodule Extractor.SnapExtractor do
       |> Enum.filter(fn(item) -> item end)
       |> Enum.count
 
-    {:ok, secs, msecs, :after} = Calendar.DateTime.diff(time_end, time_start)
+    {:ok, secs, _msecs, :after} = Calendar.DateTime.diff(time_end, time_start)
+    execution_time = humanize_time(secs)
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "Extracted Images = #{count} -- Expected Count = #{expected_count}"}) do
       {:ok, _} ->
@@ -90,9 +91,13 @@ defmodule Extractor.SnapExtractor do
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
         Dropbox.upload_file! %Dropbox.Client{access_token: System.get_env["DROP_BOX_TOKEN"]}, "instruction.json", "Construction/#{camera_exid}/#{extractor.id}/instruction.json"
         IO.inspect "instruction written"
-        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid, requestor)
+        send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid, requestor, execution_time)
       _ -> IO.inspect "Status update failed!"
     end
+  end
+
+  defp humanize_time(seconds) do
+    seconds / 60
   end
 
   defp ambiguous_handle(value) do
@@ -252,8 +257,8 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_start(false, _e_start_date, _e_to_date, _e_schedule, _e_interval, _camera_name, _requestor), do: IO.inspect "We are in Development Mode!"
   defp send_mail_start(true, e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor), do: Extractor.ExtractMailer.extractor_started(e_start_date, e_to_date, e_schedule, e_interval, camera_name, requestor)
 
-  defp send_mail_end(false, _count, _camera_name, _expected_count, _extractor_id, _camera_exid, _requestor), do: IO.inspect "We are in Development Mode!"
-  defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid, requestor), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid, requestor)
+  defp send_mail_end(false, _count, _camera_name, _expected_count, _extractor_id, _camera_exid, _requestor, _execution_time), do: IO.inspect "We are in Development Mode!"
+  defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time)
 
   defp make_me_complete(date) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
