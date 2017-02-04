@@ -2,6 +2,7 @@ defmodule Extractor.SnapExtractor do
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
+    time_start = Calendar.DateTime.now_utc
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
     requestor = extractor.requestor
@@ -65,6 +66,7 @@ defmodule Extractor.SnapExtractor do
       end
     end)
 
+    time_end = Calendar.DateTime.now_utc
     count =
       Agent.get(agent, fn list -> list end)
       |> Enum.filter(fn(item) -> item end)
@@ -74,6 +76,8 @@ defmodule Extractor.SnapExtractor do
       Agent.get(t_agent, fn list -> list end)
       |> Enum.filter(fn(item) -> item end)
       |> Enum.count
+
+    {:ok, secs, msecs, :after} = Calendar.DateTime.diff(time_end, time_start)
 
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 2, notes: "Extracted Images = #{count} -- Expected Count = #{expected_count}"}) do
       {:ok, _} ->
