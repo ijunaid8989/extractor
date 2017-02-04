@@ -97,7 +97,7 @@ defmodule Extractor.SnapExtractor do
   end
 
   defp humanize_time(seconds) do
-    seconds / 60
+    Float.floor(seconds / 60)
   end
 
   defp ambiguous_handle(value) do
