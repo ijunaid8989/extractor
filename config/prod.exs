@@ -14,7 +14,6 @@ use Mix.Config
 config :extractor, Extractor.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: "example.com", port: 80],
-  cache_static_manifest: "priv/static/manifest.json",
   email: "evercam.io <support@evercam.io>"
 
 # Do not print debug messages in production
