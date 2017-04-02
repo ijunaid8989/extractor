@@ -37,6 +37,9 @@ defmodule Extractor.Mixfile do
     :tzdata,
     :httpoison,
     :dotenv,
+    :calendar,
+    :mailgun,
+    :jazz,
     :quantum
   ]
 
