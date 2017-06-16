@@ -1,7 +1,7 @@
 SnapShot Extractor
 ==================
 
-This is a tool for [Evercam](http://evercam.io/) specifically build to extract images for a camera from SeaweedFS servers.
+This is a tool for [Evercam](http://evercam.io/) specifically build to extract images for a camera from SeaweedFS server.
 
 **Core Dependencies**
 
