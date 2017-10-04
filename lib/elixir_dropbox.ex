@@ -19,8 +19,9 @@ defmodule ElixirDropbox do
   end
 
   @spec upload_response(HTTPoison.Response.t) :: response
-  def upload_response(%HTTPoison.Response{status_code: 200, body: body}), do: Poison.decode!(body)
-  def upload_response(%HTTPoison.Response{status_code: status_code, body: body }) do
+  def upload_response({:error, %HTTPoison.Error{reason: reason}}), do: {{:status_code, 400}, reason}
+  def upload_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}), do: Poison.decode!(body)
+  def upload_response({:ok, %HTTPoison.Response{status_code: status_code, body: body}}) do
     cond do
     status_code in 400..599 ->
       {{:status_code, status_code}, Poison.decode(body)}
@@ -39,7 +40,7 @@ defmodule ElixirDropbox do
   def post_request(client, url, body, headers) do
     IO.inspect url
     headers = Map.merge(headers, headers(client))
-    HTTPoison.post!(url, body, headers) |> upload_response
+    HTTPoison.post(url, body, headers) |> upload_response
   end
 
   def upload_request(client, base_url, url, data, headers) do
