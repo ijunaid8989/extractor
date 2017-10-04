@@ -37,6 +37,7 @@ defmodule ElixirDropbox do
   end
 
   def post_request(client, url, body, headers) do
+    IO.inspect url
     headers = Map.merge(headers, headers(client))
     HTTPoison.post!(url, body, headers) |> upload_response
   end
