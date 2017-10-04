@@ -16,7 +16,7 @@ defmodule ElixirDropbox.Files.UploadSession do
      :close => close
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers), "Content-Type" => "application/octet-stream" }
-   upload_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/upload_session/start", file, headers)
+   upload_request(client, Application.get_env(:extractor, :upload_url), "files/upload_session/start", file, headers)
  end
 
  @doc """
@@ -35,7 +35,7 @@ defmodule ElixirDropbox.Files.UploadSession do
      :cursor => cursor
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers), "Content-Type" => "application/octet-stream" }
-   upload_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/upload_session/append_v2", file, headers)
+   upload_request(client, Application.get_env(:extractor, :upload_url), "files/upload_session/append_v2", file, headers)
  end
 
  @doc """
@@ -55,7 +55,7 @@ defmodule ElixirDropbox.Files.UploadSession do
      :commit => commit
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers), "Content-Type" => "application/octet-stream" }
-   upload_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/upload_session/finish", file, headers)
+   upload_request(client, Application.get_env(:extractor, :upload_url), "files/upload_session/finish", file, headers)
  end
 
  @doc """

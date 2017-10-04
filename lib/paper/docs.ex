@@ -31,7 +31,7 @@ defmodule ElixirDropbox.Paper.Docs do
      :parent_folder_id => parent_folder_id
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers), "Content-Type" => "application/octet-stream" }
-   upload_request(client, Application.get_env(:elixir_dropbox, :base_url), "/paper/docs/create", file, headers)
+   upload_request(client, Application.get_env(:extractor, :base_url), "/paper/docs/create", file, headers)
  end
 
  @doc """
@@ -49,7 +49,7 @@ defmodule ElixirDropbox.Paper.Docs do
      :export_format => export_format
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers) }
-   download_request(client, Application.get_env(:elixir_dropbox, :base_url), "/paper/docs/download", [], headers)
+   download_request(client, Application.get_env(:extractor, :base_url), "/paper/docs/download", [], headers)
  end
 
  @doc """
@@ -114,6 +114,6 @@ defmodule ElixirDropbox.Paper.Docs do
      :import_format => import_format
    }
    headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers) }
-   upload_request(client, Application.get_env(:elixir_dropbox, :base_url), "/paper/docs/update", file, headers)
+   upload_request(client, Application.get_env(:extractor, :base_url), "/paper/docs/update", file, headers)
  end
 end

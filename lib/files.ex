@@ -157,7 +157,7 @@ defmodule ElixirDropbox.Files do
       :mute => mute
     }
     headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers), "Content-Type" => "application/octet-stream" }
-    upload_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/upload", file, headers)
+    upload_request(client, Application.get_env(:extractor, :upload_url), "files/upload", file, headers)
   end
 
   @doc """
@@ -174,7 +174,7 @@ defmodule ElixirDropbox.Files do
       :path => path
     }
     headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers) }
-    download_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/download", [], headers)
+    download_request(client, Application.get_env(:extractor, :upload_url), "files/download", [], headers)
   end
 
   @doc """
@@ -193,7 +193,7 @@ defmodule ElixirDropbox.Files do
       :size => size
     }
     headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers) }
-    download_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/get_thumbnail", [], headers)
+    download_request(client, Application.get_env(:extractor, :upload_url), "files/get_thumbnail", [], headers)
   end
 
   @doc """
@@ -209,7 +209,7 @@ defmodule ElixirDropbox.Files do
   def get_thumbnail_batch(client, entries) do
     body = %{"entries" => entries}
     result = to_string(Poison.Encoder.encode(body, []))
-    post_url(client, Application.get_env(:elixir_dropbox, :upload_url), "/files/get_thumbnail_batch", result)
+    post_url(client, Application.get_env(:extractor, :upload_url), "/files/get_thumbnail_batch", result)
   end
 
   @doc """
@@ -226,7 +226,7 @@ defmodule ElixirDropbox.Files do
       :path => path
     }
     headers = %{ "Dropbox-API-Arg" => Poison.encode!(dropbox_headers) }
-    download_request(client, Application.get_env(:elixir_dropbox, :upload_url), "files/get_preview", [], headers)
+    download_request(client, Application.get_env(:extractor, :upload_url), "files/get_preview", [], headers)
   end
 
   @doc """

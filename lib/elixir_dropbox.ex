@@ -6,7 +6,7 @@ defmodule ElixirDropbox do
 
   @type response :: {any}
 
-  @base_url Application.get_env(:elixir_dropbox, :base_url)
+  @base_url Application.get_env(:extractor, :base_url)
 
   def post(client, url, body \\ "") do
     headers = json_headers()
