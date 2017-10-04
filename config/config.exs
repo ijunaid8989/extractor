@@ -5,6 +5,9 @@
 # is restricted to this project.
 use Mix.Config
 
+config :elixir_dropbox, base_url: "https://api.dropboxapi.com/2"
+config :elixir_dropbox, upload_url: "https://content.dropboxapi.com/2/"
+
 # General application configuration
 config :extractor,
   ecto_repos: [Extractor.Repo]
