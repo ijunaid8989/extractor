@@ -36,7 +36,7 @@ defmodule Extractor.SnapExtractor do
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
         send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor), e_start_date, e_to_date, e_schedule, e_interval, extractor.camera_name, requestor)
-        ElixirDropbox.Files.create_folder(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "Construction/#{camera_exid}/#{extractor.id}")
+        ElixirDropbox.Files.create_folder(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{extractor.id}")
       _ ->
         IO.inspect "Status update failed!"
     end
@@ -90,7 +90,7 @@ defmodule Extractor.SnapExtractor do
           execution_time: execution_time
         }
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
-        ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "Construction/#{camera_exid}/#{extractor.id}/instruction.json", "instruction.json")
+        ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{extractor.id}/instruction.json", "instruction.json")
         IO.inspect "instruction written"
         send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid, requestor, execution_time)
       _ -> IO.inspect "Status update failed!"
@@ -200,7 +200,7 @@ defmodule Extractor.SnapExtractor do
     imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    case ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "Construction/#{camera_exid}/#{id}/#{starting}.jpg", "image.jpg") do
+    case ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{id}/#{starting}.jpg", "image.jpg") do
       {{:status_code, status_code}, _} ->
         IO.inspect status_code
         :timer.sleep(:timer.seconds(3))
