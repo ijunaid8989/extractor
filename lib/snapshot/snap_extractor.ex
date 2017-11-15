@@ -2,6 +2,7 @@ defmodule Extractor.SnapExtractor do
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
+    IO.inspect extractor
     time_start = Calendar.DateTime.now_utc
     schedule = extractor.schedule
     interval = extractor.interval |> intervaling
@@ -51,7 +52,13 @@ defmodule Extractor.SnapExtractor do
     end)
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
-      url_day = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
+      IO.inspect acc
+      case acc do
+        %Calendar.DateTime{month: 11} ->
+          url_day = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
+        _ ->
+          url_day = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
+      end
       with :ok <- ensure_a_day(acc, url_day)
       do
         day_of_week = acc |> Calendar.Date.day_of_week_name
@@ -133,7 +140,12 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid, id, agent) do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
-    url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+    case month do
+      "11" ->
+        url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+      _ ->
+        url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+    end
     IO.inspect url
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
@@ -141,7 +153,13 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "Going for NEXT!"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-        add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+        case month do
+          "11" ->
+            add_up = the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+          _ ->
+            add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+        end
+        # add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
         IO.inspect add_up
         IO.inspect "Getting nearest!"
         do_loop(starting + add_up, ending, interval, camera_exid, id, agent)
