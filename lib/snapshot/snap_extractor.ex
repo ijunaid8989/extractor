@@ -305,7 +305,8 @@ defmodule Extractor.SnapExtractor do
   defp humanize_interval(1), do: "All"
 
   defp request_from_seaweedfs(url, type, attribute) do
-    with {:ok, response} <- HTTPoison.get(url, [], []),
+    hackney = [recv_timeout: 15000]
+    with {:ok, response} <- HTTPoison.get(url, ["Accept": "application/json"], hackney: hackney),
          %HTTPoison.Response{status_code: 200, body: body} <- response,
          {:ok, data} <- Poison.decode(body),
          true <- is_list(data[type]) do
@@ -318,7 +319,7 @@ defmodule Extractor.SnapExtractor do
   defp ensure_a_day(date, url) do
     day = Calendar.Strftime.strftime!(date, "%Y/%m/%d/")
     url_day = url <> "#{day}"
-    case request_from_seaweedfs(url_day, "Subdirectories", "Name") |> Enum.empty? do
+    case request_from_seaweedfs(url_day, "Directories", "Name") |> Enum.empty? do
       true -> :not_ok
       false -> :ok
     end
