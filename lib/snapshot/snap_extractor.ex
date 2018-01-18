@@ -54,12 +54,12 @@ defmodule Extractor.SnapExtractor do
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       IO.inspect acc
       %Calendar.DateTime{month: month, year: year} = acc
-      case month >= 11 && year >= 2017 do
-        true ->
-          url_day = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
-        _ ->
-          url_day = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
-      end
+      url_day =
+        cond do
+          month >= 11 && year >= 2017 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
+          month >= 1 && year >= 2018 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
+          true -> "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
+        end
       with :ok <- ensure_a_day(acc, url_day)
       do
         day_of_week = acc |> Calendar.Date.day_of_week_name
@@ -142,12 +142,15 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, interval, camera_exid, id, agent) do
     %{year: yearing, month: monthing} = Calendar.DateTime.Parse.unix! starting
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
-    case monthing >= 11 && yearing >= 2017 do
-      true ->
-        url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
-      _ ->
-        url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
-    end
+    url =
+      cond do
+        monthing >= 11 && yearing >= 2017 == true ->
+          "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+        monthing >= 1 && yearing >= 2018 == true ->
+          "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+        true ->
+          "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
+      end
     IO.inspect url
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
@@ -155,12 +158,15 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "Going for NEXT!"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-        case monthing >= 11 && yearing >= 2017 do
-          true ->
-            add_up = the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
-          _ ->
-            add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
-        end
+        add_up =
+          cond do
+            monthing >= 11 && yearing >= 2017 == true ->
+              the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+            monthing >= 1 && yearing >= 2018 == true ->
+              the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+            true ->
+              the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
+          end
         # add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
         IO.inspect add_up
         IO.inspect "Getting nearest!"
