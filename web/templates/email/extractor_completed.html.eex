@@ -2,4 +2,14 @@
 
 <p>The whole process took <%= @execution_time %> minutes!</p>
 
-<p>You can see required files at <a href="https://www.dropbox.com/home/Construction/<%= @camera_exid %>/<%= @extractor_id %>">DropBox</a></p>
+<%=
+  construction =
+    case @requestor do
+      "marklensmen@gmail.com" ->
+        "Construction"
+      _ ->
+        "Construction2"
+    end
+%>
+
+<p>You can see required files at <a href="https://www.dropbox.com/home/<%= construction %>/<%= @camera_exid %>/<%= @extractor_id %>">DropBox</a></p>
