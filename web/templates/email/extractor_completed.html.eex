@@ -2,7 +2,7 @@
 
 <p>The whole process took <%= @execution_time %> minutes!</p>
 
-<%=
+<%
   construction =
     case @requestor do
       "marklensmen@gmail.com" ->
