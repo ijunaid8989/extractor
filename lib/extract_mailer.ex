@@ -20,7 +20,7 @@ defmodule Extractor.ExtractMailer do
       subject: "SnapShot Extraction Completed",
       from: @from,
       bcc: "marco@evercam.io,#{requestor}",
-      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", count: count, camera_name: camera_name, expected_count: expected_count, extractor_id: extractor_id, camera_exid: camera_exid, execution_time: execution_time),
-      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", count: count, camera_name: camera_name, expected_count: expected_count, extractor_id: extractor_id, camera_exid: camera_exid, execution_time: execution_time)
+      html: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.html", count: count, camera_name: camera_name, expected_count: expected_count, extractor_id: extractor_id, camera_exid: camera_exid, execution_time: execution_time, requestor: requestor),
+      text: Phoenix.View.render_to_string(Extractor.EmailView, "extractor_completed.txt", count: count, camera_name: camera_name, expected_count: expected_count, extractor_id: extractor_id, camera_exid: camera_exid, execution_time: execution_time, requestor: requestor)
   end
 end

@@ -34,10 +34,18 @@ defmodule Extractor.SnapExtractor do
     e_schedule = schedule
     e_interval = interval |> humanize_interval
 
+    construction =
+      case requestor do
+        "marklensmen@gmail.com" ->
+          "Construction"
+        _ ->
+          "Construction2"
+      end
+
     case SnapshotExtractor.update_extractor_status(extractor.id, %{status: 1}) do
       {:ok, _extractor} ->
         send_mail_start(Application.get_env(:extractor, :send_emails_for_extractor), e_start_date, e_to_date, e_schedule, e_interval, extractor.camera_name, requestor)
-        ElixirDropbox.Files.create_folder(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{extractor.id}")
+        ElixirDropbox.Files.create_folder(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/#{construction}/#{camera_exid}/#{extractor.id}")
       _ ->
         IO.inspect "Status update failed!"
     end
@@ -65,7 +73,7 @@ defmodule Extractor.SnapExtractor do
         day_of_week = acc |> Calendar.Date.day_of_week_name
         rec_head = get_head_tail(schedule[day_of_week])
         rec_head |> Enum.each(fn(x) ->
-          iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent)
+          iterate(x, acc, timezone) |> download(camera_exid, interval, extractor.id, agent, requestor)
         end)
         acc |> Calendar.DateTime.to_erl |> Calendar.DateTime.from_erl(timezone, {123456, 6}) |> ambiguous_handle |> Calendar.DateTime.add!(86400)
       else
@@ -98,7 +106,7 @@ defmodule Extractor.SnapExtractor do
           execution_time: execution_time
         }
         File.write("instruction.json", Poison.encode!(instruction), [:binary])
-        ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{extractor.id}/instruction.json", "instruction.json")
+        ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/#{construction}/#{camera_exid}/#{extractor.id}/instruction.json", "instruction.json")
         IO.inspect "instruction written"
         send_mail_end(Application.get_env(:extractor, :send_emails_for_extractor), count, extractor.camera_name, expected_count, extractor.id, camera_exid, requestor, execution_time)
       _ -> IO.inspect "Status update failed!"
@@ -133,13 +141,13 @@ defmodule Extractor.SnapExtractor do
     t_do_loop(starting + interval, ending, interval, t_agent)
   end
 
-  def download([], _camera_exid, _interval, _id, _agent), do: IO.inspect "I am empty!"
-  def download([starting, ending], camera_exid, interval, id, agent) do
-    do_loop(starting, ending, interval, camera_exid, id, agent)
+  def download([], _camera_exid, _interval, _id, _agent, _requestor), do: IO.inspect "I am empty!"
+  def download([starting, ending], camera_exid, interval, id, agent, requestor) do
+    do_loop(starting, ending, interval, camera_exid, id, agent, requestor)
   end
 
-  defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent) when starting >= ending, do: IO.inspect "We are finished!"
-  defp do_loop(starting, ending, interval, camera_exid, id, agent) do
+  defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent, _requestor) when starting >= ending, do: IO.inspect "We are finished!"
+  defp do_loop(starting, ending, interval, camera_exid, id, agent, requestor) do
     %{year: yearing, month: monthing} = Calendar.DateTime.Parse.unix! starting
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
     url =
@@ -154,9 +162,9 @@ defmodule Extractor.SnapExtractor do
     IO.inspect url
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
-        upload(200, body, starting, camera_exid, id, agent)
+        upload(200, body, starting, camera_exid, id, agent, requestor)
         IO.inspect "Going for NEXT!"
-        do_loop(starting + interval, ending, interval, camera_exid, id, agent)
+        do_loop(starting + interval, ending, interval, camera_exid, id, agent, requestor)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
         add_up =
           cond do
@@ -170,11 +178,11 @@ defmodule Extractor.SnapExtractor do
         # add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
         IO.inspect add_up
         IO.inspect "Getting nearest!"
-        do_loop(starting + add_up, ending, interval, camera_exid, id, agent)
+        do_loop(starting + add_up, ending, interval, camera_exid, id, agent, requestor)
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect "Weed: #{reason}!"
         :timer.sleep(:timer.seconds(3))
-        do_loop(starting, ending, interval, camera_exid, id, agent)
+        do_loop(starting, ending, interval, camera_exid, id, agent, requestor)
     end
   end
 
@@ -221,22 +229,31 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
-  def upload(200, response, starting, camera_exid, id, agent) do
+  def upload(200, response, starting, camera_exid, id, agent, requestor) do
     IO.inspect response
     imagef = File.write("image.jpg", response, [:binary])
     IO.inspect "writing"
     File.close imagef
-    case ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/Construction/#{camera_exid}/#{id}/#{starting}.jpg", "image.jpg") do
+
+    construction =
+      case requestor do
+        "marklensmen@gmail.com" ->
+          "Construction"
+        _ ->
+          "Construction2"
+      end
+
+    case ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/#{construction}/#{camera_exid}/#{id}/#{starting}.jpg", "image.jpg") do
       {{:status_code, status_code}, _} ->
         IO.inspect status_code
         :timer.sleep(:timer.seconds(3))
-        upload(200, response, starting, camera_exid, id, agent)
+        upload(200, response, starting, camera_exid, id, agent, requestor)
       _ ->
         Agent.update(agent, fn list -> ["true" | list] end)
         IO.inspect "written"
     end
   end
-  def upload(_, response, _starting, _camera_exid, _id, _agent), do: IO.inspect "Not an Image! #{response}"
+  def upload(_, response, _starting, _camera_exid, _id, _agent, _requestor), do: IO.inspect "Not an Image! #{response}"
 
   defp decode_image("data:image/jpeg;base64," <> encoded_image) do
     Base.decode64!(encoded_image)
