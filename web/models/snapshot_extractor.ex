@@ -15,6 +15,9 @@ defmodule SnapshotExtractor do
     field :schedule, Extractor.Types.JSON
     field :status, :integer
     field :notes, :string
+    field :create_mp4, :boolean
+    field :jpegs_to_dropbox, :boolean
+    field :inject_to_cr, :boolean
     field :requestor, :string
     timestamps(inserted_at: :created_at, type: Ecto.DateTime, default: Ecto.DateTime.utc)
   end
@@ -30,7 +33,7 @@ defmodule SnapshotExtractor do
     |> limit(1)
     |> where(status: 0)
     |> join(:inner_lateral, [se], cam in fragment("SELECT * FROM cameras as cam WHERE cam.id = ?", se.camera_id))
-    |> select([se, cam], %{ id: se.id, from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone, camera_name: cam.name, requestor: se.requestor})
+    |> select([se, cam], %{ id: se.id, from_date: se.from_date, to_date: se.to_date, interval: se.interval, schedule: se.schedule, camera_exid: cam.exid, timezone: cam.timezone, camera_name: cam.name, requestor: se.requestor, create_mp4: se.create_mp4, jpegs_to_dropbox: se.jpegs_to_dropbox})
     |> Repo.one
   end
 
