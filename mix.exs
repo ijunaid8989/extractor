@@ -40,7 +40,8 @@ defmodule Extractor.Mixfile do
     :calendar,
     :mailgun,
     :jazz,
-    :quantum
+    :quantum,
+    :porcelain
   ]
 
 
@@ -67,7 +68,8 @@ defmodule Extractor.Mixfile do
       {:httpoison, "~> 0.9.0"},
       {:jazz, "~> 0.2.1"},
       {:mailgun, github: "evercam/mailgun"},
-      {:quantum, ">= 1.8.0"}
+      {:quantum, ">= 1.8.0"},
+      {:porcelain, "~> 2.0"}
    ]
   end
 
