@@ -124,7 +124,7 @@ defmodule Extractor.SnapExtractor do
 
   defp create_mp4_and_upload(false, images_directory), do: File.rm_rf!(images_directory)
   defp create_mp4_and_upload(true, images_directory) do
-    Porcelain.shell("cat #{images_directory}/*.jpg | ffmpeg -f image2pipe -framerate 6 -i - -r 6 -preset slow -bufsize 1000k -pix_fmt yuv420p -y #{images_directory}/video.mp4", [err: :out]).out
+    Porcelain.shell("cat #{images_directory}/*.jpg | ffmpeg -f image2pipe -framerate 6 -i - -c:v libx264 -r 6 -preset slow -tune stillimage -bufsize 1000k -pix_fmt yuv420p -y #{images_directory}/video.mp4", [err: :out]).out
     ElixirDropbox.Files.upload(ElixirDropbox.Client.new(System.get_env["DROP_BOX_TOKEN"]), "/#{images_directory}/video.mp4", "#{images_directory}/video.mp4")
     File.rm_rf!(images_directory)
   end
