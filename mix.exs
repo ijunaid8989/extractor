@@ -28,9 +28,11 @@ defmodule Extractor.Mixfile do
   defp app_list, do: [
     :phoenix,
     :phoenix_pubsub,
+    :phoenix_live_reload,
     :phoenix_html,
     :cowboy,
     :logger,
+    :erlware_commons,
     :gettext,
     :phoenix_ecto,
     :postgrex,
