@@ -28,8 +28,8 @@ defmodule Extractor.Mixfile do
   defp app_list, do: [
     :phoenix,
     :phoenix_pubsub,
-    :phoenix_live_reload,
     :phoenix_html,
+    :phoenix_live_reload,
     :cowboy,
     :logger,
     :erlware_commons,
@@ -46,7 +46,9 @@ defmodule Extractor.Mixfile do
     :mailgun,
     :jazz,
     :quantum,
-    :porcelain
+    :porcelain,
+    :exrm,
+    :relx
   ]
 
 
