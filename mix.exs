@@ -46,6 +46,7 @@ defmodule Extractor.Mixfile do
     :mailgun,
     :jazz,
     :quantum,
+    :timex,
     :porcelain,
     :exrm,
     :relx
@@ -78,6 +79,7 @@ defmodule Extractor.Mixfile do
       {:ecto, "~> 2.1.4"},
       {:mailgun, github: "evercam/mailgun"},
       {:quantum, ">= 1.8.0"},
+      {:timex, "~> 3.0"},
       {:porcelain, "~> 2.0"},
       {:relx, "~> 3.26.0"},
       {:geo, "~> 1.4"},

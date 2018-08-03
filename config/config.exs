@@ -25,13 +25,9 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :quantum,
-  cron: [
-    snapshot_extraction: [
-      task: {"Extractor.StartExtractor", "start"},
-      schedule: "*/2 * * * *",
-      overlap: false
-    ]
+config :extractor, Extractor.Scheduler,
+  jobs: [
+    {"*/2 * * * *", {Extractor.StartExtractor, :start, []}},
   ]
 
 # Import environment specific config. This must remain at the bottom
