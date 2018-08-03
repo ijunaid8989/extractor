@@ -66,7 +66,7 @@ defmodule Extractor.Mixfile do
       {:exrm, github: "bitwalker/exrm"},
       {:postgrex, "~> 0.13.5"},
       {:phoenix_html, "~> 2.6"},
-      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:phoenix_live_reload, "~> 1.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:dotenv, "~> 2.1.0"},
