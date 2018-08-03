@@ -1,4 +1,4 @@
-defmodule Extractor.ErrorHelpers do
+defmodule ExtractorWeb.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """

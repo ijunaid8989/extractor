@@ -1,4 +1,4 @@
-defmodule Extractor.Gettext do
+defmodule ExtractorWeb.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 

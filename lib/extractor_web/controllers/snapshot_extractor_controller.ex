@@ -1,5 +1,5 @@
-defmodule Extractor.SnapshotExtractorController do
-  use Extractor.Web, :controller
+defmodule ExtractorWeb.SnapshotExtractorController do
+  use ExtractorWeb, :controller
 
   def index(conn, _params) do
     render conn, "extractor.html"

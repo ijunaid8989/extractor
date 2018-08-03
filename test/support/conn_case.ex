@@ -1,4 +1,4 @@
-defmodule Extractor.ConnCase do
+defmodule ExtractorWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -25,10 +25,10 @@ defmodule Extractor.ConnCase do
       import Ecto.Changeset
       import Ecto.Query
 
-      import Extractor.Router.Helpers
+      import ExtractorWeb.Router.Helpers
 
       # The default endpoint for testing
-      @endpoint Extractor.Endpoint
+      @endpoint ExtractorWeb.Endpoint
     end
   end
 

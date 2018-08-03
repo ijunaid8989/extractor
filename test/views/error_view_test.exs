@@ -1,5 +1,5 @@
-defmodule Extractor.ErrorViewTest do
-  use Extractor.ConnCase, async: true
+defmodule ExtractorWeb.ErrorViewTest do
+  use ExtractorWeb.ConnCase, async: true
 
   # Bring render/3 and render_to_string/3 for testing custom views
   import Phoenix.View

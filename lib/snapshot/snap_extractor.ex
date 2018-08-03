@@ -1,5 +1,4 @@
 defmodule Extractor.SnapExtractor do
-  require IEx
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -64,7 +63,7 @@ defmodule Extractor.SnapExtractor do
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       IO.inspect acc
-      %Calendar.DateTime{month: month, year: year} = acc
+      %DateTime{month: month, year: year} = acc
       url_day =
         cond do
           month >= 11 && year >= 2017 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
@@ -324,27 +323,33 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time)
 
   defp make_me_complete(date) do
-    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
-    month = String.rjust("#{month}", 2, ?0)
-    day = String.rjust("#{day}", 2, ?0)
-    hour = String.rjust("#{hour}", 2, ?0)
-    min = String.rjust("#{min}", 2, ?0)
-    sec = String.rjust("#{sec}", 2, ?0)
+    # %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
+    {{year, month, day}, {hour, min, sec}} = Calendar.DateTime.Parse.unix!(date) |> Calendar.DateTime.to_erl
+    month = String.pad_leading("#{month}", 2, "0")
+    day = String.pad_leading("#{day}", 2, "0")
+    hour = String.pad_leading("#{hour}", 2, "0")
+    min = String.pad_leading("#{min}", 2, "0")
+    sec = String.pad_leading("#{sec}", 2, "0")
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
   end
 
-  defp humanize_interval(60), do: "1 Frame Every 1 min"
-  defp humanize_interval(300), do: "1 Frame Every 5 min"
-  defp humanize_interval(600), do: "1 Frame Every 10 min"
-  defp humanize_interval(900), do: "1 Frame Every 15 min"
-  defp humanize_interval(1200), do: "1 Frame Every 20 min"
-  defp humanize_interval(1800), do: "1 Frame Every 30 min"
-  defp humanize_interval(3600), do: "1 Frame Every hour"
-  defp humanize_interval(7200), do: "1 Frame Every 2 hour"
+  defp humanize_interval(5),     do: "1 Frame Every 5 sec"
+  defp humanize_interval(10),    do: "1 Frame Every 10 sec"
+  defp humanize_interval(15),    do: "1 Frame Every 15 sec"
+  defp humanize_interval(20),    do: "1 Frame Every 20 sec"
+  defp humanize_interval(30),    do: "1 Frame Every 30 sec"
+  defp humanize_interval(60),    do: "1 Frame Every 1 min"
+  defp humanize_interval(300),   do: "1 Frame Every 5 min"
+  defp humanize_interval(600),   do: "1 Frame Every 10 min"
+  defp humanize_interval(900),   do: "1 Frame Every 15 min"
+  defp humanize_interval(1200),  do: "1 Frame Every 20 min"
+  defp humanize_interval(1800),  do: "1 Frame Every 30 min"
+  defp humanize_interval(3600),  do: "1 Frame Every hour"
+  defp humanize_interval(7200),  do: "1 Frame Every 2 hour"
   defp humanize_interval(21600), do: "1 Frame Every 6 hour"
   defp humanize_interval(43200), do: "1 Frame Every 12 hour"
   defp humanize_interval(86400), do: "1 Frame Every 24 hour"
-  defp humanize_interval(1), do: "All"
+  defp humanize_interval(1),     do: "All"
 
   defp request_from_seaweedfs(url, type, attribute) do
     hackney = [recv_timeout: 15000]

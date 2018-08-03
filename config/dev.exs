@@ -6,7 +6,7 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
-config :extractor, Extractor.Endpoint,
+config :extractor, ExtractorWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
@@ -16,7 +16,7 @@ config :extractor, Extractor.Endpoint,
 
 
 # Watch static and templates for browser reloading.
-config :extractor, Extractor.Endpoint,
+config :extractor, ExtractorWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
@@ -45,9 +45,7 @@ config :extractor, :mailgun,
 # Configure your database
 config :extractor, Extractor.Repo,
   adapter: Ecto.Adapters.Postgres,
-  extensions: [
-    {Extractor.Types.JSON.Extension, library: Poison}
-  ],
+  types: Extractor.PostgresTypes,
   username: "postgres",
   password: "postgres",
   database: System.get_env["db"] || "evercam_dev",

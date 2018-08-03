@@ -13,7 +13,7 @@ config :extractor,
   ecto_repos: [Extractor.Repo]
 
 # Configures the endpoint
-config :extractor, Extractor.Endpoint,
+config :extractor, ExtractorWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "lRoG72jFhhH8KDyZWplVrAiB/3c47xI+6+ywBPR7FQnPk2ptTzVsr12Sc9isp+GV",
   render_errors: [view: Extractor.ErrorView, accepts: ~w(html json)],
@@ -25,13 +25,9 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :quantum,
-  cron: [
-    snapshot_extraction: [
-      task: {"Extractor.StartExtractor", "start"},
-      schedule: "*/2 * * * *",
-      overlap: false
-    ]
+config :extractor, Extractor.Scheduler,
+  jobs: [
+    {"*/2 * * * *", {Extractor.StartExtractor, :start, []}},
   ]
 
 # Import environment specific config. This must remain at the bottom

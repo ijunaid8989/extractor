@@ -1,3 +1,3 @@
-defmodule Extractor.PageViewTest do
-  use Extractor.ConnCase, async: true
+defmodule ExtractorWeb.PageViewTest do
+  use ExtractorWeb.ConnCase, async: true
 end
