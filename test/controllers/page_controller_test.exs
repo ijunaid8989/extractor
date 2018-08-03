@@ -1,5 +1,5 @@
-defmodule Extractor.PageControllerTest do
-  use Extractor.ConnCase
+defmodule ExtractorWeb.PageControllerTest do
+  use ExtractorWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get conn, "/"

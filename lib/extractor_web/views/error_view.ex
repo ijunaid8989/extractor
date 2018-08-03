@@ -1,5 +1,5 @@
-defmodule Extractor.ErrorView do
-  use Extractor.Web, :view
+defmodule ExtractorWeb.ErrorView do
+  use ExtractorWeb, :view
 
   def render("404.html", _assigns) do
     "Page not found"

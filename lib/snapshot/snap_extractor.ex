@@ -1,5 +1,4 @@
 defmodule Extractor.SnapExtractor do
-  require IEx
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -64,7 +63,7 @@ defmodule Extractor.SnapExtractor do
 
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       IO.inspect acc
-      %Calendar.DateTime{month: month, year: year} = acc
+      %DateTime{month: month, year: year} = acc
       url_day =
         cond do
           month >= 11 && year >= 2017 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
@@ -324,12 +323,13 @@ defmodule Extractor.SnapExtractor do
   defp send_mail_end(true, count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time), do: Extractor.ExtractMailer.extractor_completed(count, camera_name, expected_count, extractor_id, camera_exid, requestor, execution_time)
 
   defp make_me_complete(date) do
-    %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
-    month = String.rjust("#{month}", 2, ?0)
-    day = String.rjust("#{day}", 2, ?0)
-    hour = String.rjust("#{hour}", 2, ?0)
-    min = String.rjust("#{min}", 2, ?0)
-    sec = String.rjust("#{sec}", 2, ?0)
+    # %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = Calendar.DateTime.Parse.unix! date
+    {{year, month, day}, {hour, min, sec}} = Calendar.DateTime.Parse.unix!(date) |> Calendar.DateTime.to_erl
+    month = String.pad_leading("#{month}", 2, "0")
+    day = String.pad_leading("#{day}", 2, "0")
+    hour = String.pad_leading("#{hour}", 2, "0")
+    min = String.pad_leading("#{min}", 2, "0")
+    sec = String.pad_leading("#{sec}", 2, "0")
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
   end
 

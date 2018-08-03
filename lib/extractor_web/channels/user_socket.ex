@@ -1,4 +1,4 @@
-defmodule Extractor.UserSocket do
+defmodule ExtractorWeb.UserSocket do
   use Phoenix.Socket
 
   ## Channels

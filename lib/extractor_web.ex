@@ -1,4 +1,4 @@
-defmodule Extractor.Web do
+defmodule ExtractorWeb do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.
@@ -28,20 +28,20 @@ defmodule Extractor.Web do
 
   def controller do
     quote do
-      use Phoenix.Controller
+      use Phoenix.Controller, namespace: ExtractorWeb
 
       alias Extractor.Repo
       import Ecto
       import Ecto.Query
 
-      import Extractor.Router.Helpers
-      import Extractor.Gettext
+      import ExtractorWeb.Router.Helpers
+      import ExtractorWeb.Gettext
     end
   end
 
   def view do
     quote do
-      use Phoenix.View, root: "web/templates"
+      use Phoenix.View, root: "lib/extractor_web/templates", namespace: ExtractorWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
@@ -49,9 +49,9 @@ defmodule Extractor.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
-      import Extractor.Router.Helpers
-      import Extractor.ErrorHelpers
-      import Extractor.Gettext
+      import ExtractorWeb.Router.Helpers
+      import ExtractorWeb.ErrorHelpers
+      import ExtractorWeb.Gettext
     end
   end
 
@@ -68,7 +68,7 @@ defmodule Extractor.Web do
       alias Extractor.Repo
       import Ecto
       import Ecto.Query
-      import Extractor.Gettext
+      import ExtractorWeb.Gettext
     end
   end
 

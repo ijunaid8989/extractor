@@ -1,5 +1,5 @@
 defmodule SnapshotExtractor do
-  use Extractor.Web, :model
+  use ExtractorWeb, :model
   import Ecto.Changeset
   import Ecto.Query
   alias Extractor.Repo
@@ -54,6 +54,6 @@ defmodule SnapshotExtractor do
 
   def changeset(model, params \\ :invalid) do
     model
-    |> cast(params, @required_fields, @optional_fields)
+    |> cast(params, @required_fields ++ @optional_fields)
   end
 end

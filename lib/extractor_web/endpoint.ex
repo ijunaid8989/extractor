@@ -1,7 +1,7 @@
-defmodule Extractor.Endpoint do
+defmodule ExtractorWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :extractor
 
-  socket "/socket", Extractor.UserSocket
+  socket "/socket", ExtractorWeb.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -38,5 +38,5 @@ defmodule Extractor.Endpoint do
     key: "_extractor_key",
     signing_salt: "B0IQNfWK"
 
-  plug Extractor.Router
+  plug ExtractorWeb.Router
 end

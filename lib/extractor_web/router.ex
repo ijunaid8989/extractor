@@ -1,5 +1,5 @@
-defmodule Extractor.Router do
-  use Extractor.Web, :router
+defmodule ExtractorWeb.Router do
+  use ExtractorWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -13,14 +13,14 @@ defmodule Extractor.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", Extractor do
+  scope "/", ExtractorWeb do
     pipe_through :browser # Use the default browser stack
 
     get "/", SnapshotExtractorController, :index
   end
 
   # Other scopes may use custom stacks.
-  scope "/api", Extractor do
+  scope "/api", ExtractorWeb do
     pipe_through :api
 
     get "/:camera_exid/newest", SnapshotExtractorController, :newest

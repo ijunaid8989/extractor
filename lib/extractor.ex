@@ -11,7 +11,7 @@ defmodule Extractor do
       # Start the Ecto repository
       supervisor(Extractor.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(Extractor.Endpoint, []),
+      supervisor(ExtractorWeb.Endpoint, []),
       # Start your own worker by calling: Extractor.Worker.start_link(arg1, arg2, arg3)
       # worker(Extractor.Worker, [arg1, arg2, arg3]),
     ]
@@ -25,7 +25,7 @@ defmodule Extractor do
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
   def config_change(changed, _new, removed) do
-    Extractor.Endpoint.config_change(changed, removed)
+    ExtractorWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end
