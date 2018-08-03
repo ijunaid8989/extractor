@@ -333,18 +333,23 @@ defmodule Extractor.SnapExtractor do
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec}
   end
 
-  defp humanize_interval(60), do: "1 Frame Every 1 min"
-  defp humanize_interval(300), do: "1 Frame Every 5 min"
-  defp humanize_interval(600), do: "1 Frame Every 10 min"
-  defp humanize_interval(900), do: "1 Frame Every 15 min"
-  defp humanize_interval(1200), do: "1 Frame Every 20 min"
-  defp humanize_interval(1800), do: "1 Frame Every 30 min"
-  defp humanize_interval(3600), do: "1 Frame Every hour"
-  defp humanize_interval(7200), do: "1 Frame Every 2 hour"
+  defp humanize_interval(5),     do: "1 Frame Every 5 sec"
+  defp humanize_interval(10),    do: "1 Frame Every 10 sec"
+  defp humanize_interval(15),    do: "1 Frame Every 15 sec"
+  defp humanize_interval(20),    do: "1 Frame Every 20 sec"
+  defp humanize_interval(30),    do: "1 Frame Every 30 sec"
+  defp humanize_interval(60),    do: "1 Frame Every 1 min"
+  defp humanize_interval(300),   do: "1 Frame Every 5 min"
+  defp humanize_interval(600),   do: "1 Frame Every 10 min"
+  defp humanize_interval(900),   do: "1 Frame Every 15 min"
+  defp humanize_interval(1200),  do: "1 Frame Every 20 min"
+  defp humanize_interval(1800),  do: "1 Frame Every 30 min"
+  defp humanize_interval(3600),  do: "1 Frame Every hour"
+  defp humanize_interval(7200),  do: "1 Frame Every 2 hour"
   defp humanize_interval(21600), do: "1 Frame Every 6 hour"
   defp humanize_interval(43200), do: "1 Frame Every 12 hour"
   defp humanize_interval(86400), do: "1 Frame Every 24 hour"
-  defp humanize_interval(1), do: "All"
+  defp humanize_interval(1),     do: "All"
 
   defp request_from_seaweedfs(url, type, attribute) do
     hackney = [recv_timeout: 15000]
