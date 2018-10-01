@@ -19,10 +19,10 @@ config :extractor, ExtractorWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
-config :extractor, :mailgun,
-  domain: System.get_env("MAILGUN_DOMAIN"),
-  key: System.get_env("MAILGUN_KEY"),
-  mode: :prod
+config :extractor, Extractor.Mailer,
+  adapter: Swoosh.Adapters.Mailgun,
+  api_key: System.get_env("MAILGUN_KEY"),
+  domain: System.get_env("MAILGUN_DOMAIN")
 
 # Sending email on start and end of Extractor
 config :extractor, :send_emails_for_extractor, true

@@ -37,10 +37,10 @@ config :extractor, :send_emails_for_extractor, false
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
 
-config :extractor, :mailgun,
-  domain: "dev",
-  key: "dev",
-  mode: :dev
+config :extractor, Extractor.Mailer,
+  adapter: Swoosh.Adapters.Mailgun,
+  api_key: System.get_env("MAILGUN_KEY"),
+  domain: System.get_env("MAILGUN_DOMAIN")
 
 # Configure your database
 config :extractor, Extractor.Repo,
