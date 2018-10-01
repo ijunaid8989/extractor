@@ -30,6 +30,11 @@ config :extractor, Extractor.Scheduler,
     {"*/2 * * * *", {Extractor.StartExtractor, :start, []}},
   ]
 
+config :extractor, Extractor.Mailer,
+  adapter: Swoosh.Adapters.Mailgun,
+  api_key: "sandbox",
+  domain: "sandbox"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
