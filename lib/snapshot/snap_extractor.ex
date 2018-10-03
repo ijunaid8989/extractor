@@ -1,4 +1,5 @@
 defmodule Extractor.SnapExtractor do
+  @new_filer "#{System.get_env["FILER_NEW"]}"
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -64,12 +65,7 @@ defmodule Extractor.SnapExtractor do
     1..total_days |> Enum.reduce(start_date, fn _i, acc ->
       IO.inspect acc
       %DateTime{month: month, year: year} = acc
-      url_day =
-        cond do
-          month >= 11 && year >= 2017 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
-          month >= 1 && year >= 2018 == true -> "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/"
-          true -> "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/"
-        end
+      url_day = "#{switch_filer(acc)}/#{camera_exid}/snapshots/recordings/"
       with :ok <- ensure_a_day(acc, url_day)
       do
         day_of_week = acc |> Calendar.Date.day_of_week_name
@@ -121,6 +117,21 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
+  defp switch_filer(request_date) do
+    oct_date =
+      {{2017, 10, 31}, {23, 59, 59}}
+      |> Calendar.DateTime.from_erl!("UTC")
+
+    case Calendar.DateTime.diff(request_date, oct_date) do
+      {:ok, secs, _, :after} ->
+        case secs > 31536000 do
+          true -> "#{System.get_env["FILER_NEW"]}"
+          false -> "#{System.get_env["FILER_NOV"]}"
+        end
+      _ -> "#{System.get_env["FILER"]}"
+    end
+  end
+
   defp create_mp4_and_upload(false, images_directory), do: File.rm_rf!(images_directory)
   defp create_mp4_and_upload(true, images_directory) do
     Porcelain.shell("cat #{images_directory}/*.jpg | ffmpeg -f image2pipe -framerate 6 -i - -c:v libx264 -r 6 -preset slow -tune stillimage -bufsize 1000k -pix_fmt yuv420p -y #{images_directory}/video.mp4", [err: :out]).out
@@ -164,17 +175,9 @@ defmodule Extractor.SnapExtractor do
   defp do_loop(starting, ending, _interval, _camera_exid, _id, _agent, _requestor, _index) when starting >= ending, do: IO.inspect "We are finished!"
   defp do_loop(starting, ending, interval, camera_exid, id, agent, requestor, index) do
     IO.inspect "#{index} INDEX"
-    %{year: yearing, month: monthing} = Calendar.DateTime.Parse.unix! starting
+    %{year: yearing, month: monthing} = Calendar.DateTime.Parse.unix!(starting)
     %{year: year, month: month, day: day, hour: hour, min: min, sec: sec} = make_me_complete(starting)
-    url =
-      cond do
-        monthing >= 11 && yearing >= 2017 == true ->
-          "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
-        monthing >= 1 && yearing >= 2018 == true ->
-          "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
-        true ->
-          "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
-      end
+    url = "#{switch_filer(Calendar.DateTime.Parse.unix!(starting))}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/#{min}_#{sec}_000.jpg"
     IO.inspect url
     case HTTPoison.get(url, [], []) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
@@ -182,15 +185,7 @@ defmodule Extractor.SnapExtractor do
         IO.inspect "Going for NEXT!"
         do_loop(starting + interval, ending, interval, camera_exid, id, agent, requestor, index + 1)
       {:ok, %HTTPoison.Response{body: "", status_code: 404}} ->
-        add_up =
-          cond do
-            monthing >= 11 && yearing >= 2017 == true ->
-              the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
-            monthing >= 1 && yearing >= 2018 == true ->
-              the_most_nearest(url = "#{System.get_env["FILER_NOV"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
-            true ->
-              the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
-          end
+        add_up = the_most_nearest(url = "#{switch_filer(Calendar.DateTime.Parse.unix!(starting))}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
         # add_up = the_most_nearest(url = "#{System.get_env["FILER"]}/#{camera_exid}/snapshots/recordings/#{year}/#{month}/#{day}/#{hour}/?limit=3600", starting)
         IO.inspect add_up
         IO.inspect "Getting nearest!"
@@ -202,11 +197,26 @@ defmodule Extractor.SnapExtractor do
     end
   end
 
+  defp seaweefs_type(@new_filer), do: "Entries"
+  defp seaweefs_type(_), do: "Directories"
+
+  defp seaweedfs_attribute(@new_filer), do: "FullPath"
+  defp seaweedfs_attribute(_), do: "Name"
+
+  defp seaweedfs_files(@new_filer), do: "Entries"
+  defp seaweedfs_files(_), do: "Files"
+
+  defp seaweedfs_name(@new_filer), do: "FullPath"
+  defp seaweedfs_name(_), do: "name"
+
   defp the_most_nearest(url, starting) do
+    date_on = Calendar.DateTime.Parse.unix!(starting)
     %{year: _year, month: _month, day: _day, hour: _hour, min: min, sec: sec} = make_me_complete(starting)
     on_miss = "#{min}_#{sec}_000.jpg"
     IO.inspect on_miss
-    request_from_seaweedfs(url, "Files", "name")
+    filer = switch_filer(date_on)
+
+    request_from_seaweedfs(url, seaweedfs_files(filer), seaweedfs_name(filer))
     |> case do
       [] ->
         [r_min, r_sec, _] = String.split(on_miss, "_")
@@ -357,16 +367,20 @@ defmodule Extractor.SnapExtractor do
          %HTTPoison.Response{status_code: 200, body: body} <- response,
          {:ok, data} <- Poison.decode(body),
          true <- is_list(data[type]) do
-      Enum.map(data[type], fn(item) -> item[attribute] end)
+      Enum.map(data[type], fn(item) -> item[attribute] |> get_base_name(type, attribute) end)
     else
       _ -> []
     end
   end
 
+  defp get_base_name(list, "Entries", "FullPath"), do: list |> Path.basename
+  defp get_base_name(list, _, _), do: list
+
   defp ensure_a_day(date, url) do
+    filer = switch_filer(date)
     day = Calendar.Strftime.strftime!(date, "%Y/%m/%d/")
     url_day = url <> "#{day}"
-    case request_from_seaweedfs(url_day, "Directories", "Name") |> Enum.empty? do
+    case request_from_seaweedfs(url_day, seaweefs_type(filer), seaweedfs_attribute(filer)) |> Enum.empty? do
       true -> :not_ok
       false -> :ok
     end
