@@ -1,5 +1,5 @@
 defmodule Extractor.SnapExtractor do
-  @new_filer "#{System.get_env["FILER_NEW"]}"
+  @new_filer "http://159.69.136.31:8888"
 
   def extract(nil), do: IO.inspect "No extrator with status 0"
   def extract(extractor) do
@@ -125,10 +125,10 @@ defmodule Extractor.SnapExtractor do
     case Calendar.DateTime.diff(request_date, oct_date) do
       {:ok, secs, _, :after} ->
         case secs > 31536000 do
-          true -> "#{System.get_env["FILER_NEW"]}"
-          false -> "#{System.get_env["FILER_NOV"]}"
+          true -> "http://159.69.136.31:8888"
+          false -> "http://94.130.139.38:8888"
         end
-      _ -> "#{System.get_env["FILER"]}"
+      _ -> "http://94.130.217.56:8888"
     end
   end
 
