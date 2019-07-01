@@ -19,6 +19,6 @@ config :extractor, Extractor.Repo,
   socket_options: [keepalive: true],
   timeout: 60_000,
   pool_timeout: 60_000,
-  pool_size: 80,
+  pool_size: 20,
   lazy: false,
   ssl: true
